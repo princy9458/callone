@@ -1,41 +1,41 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://raideepak:Jaipur%40302030@payload-10.kxlklht.mongodb.net/callone';
+type CachedMongoose = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+const globalCache = globalThis as typeof globalThis & {
+  __mongoose__?: CachedMongoose;
+};
+
+const cached = globalCache.__mongoose__ ?? {conn: null, promise: null};
+
+if (!globalCache.__mongoose__) {
+  globalCache.__mongoose__ = cached;
 }
 
-let cached = (global as any).mongoose;
+export default async function dbConnect() {
+  const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
+  if (!MONGODB_URI) {
+    throw new Error("Missing MONGODB_URI. Define it in .env.local before running CallawayOne.");
+  }
 
-async function dbConnect() {
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log("Connected to MongoDB");
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI, {bufferCommands: false});
   }
-  
+
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (error) {
     cached.promise = null;
-    throw e;
+    throw error;
   }
 
   return cached.conn;
 }
-
-export default dbConnect;

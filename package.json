@@ -1,12 +1,15 @@
 {
-  "name": "temp-app",
+  "name": "callone-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test --experimental-strip-types src/lib/utils/*.test.ts",
+    "seed": "node --experimental-strip-types --experimental-specifier-resolution=node src/scripts/seed.ts",
+    "seed:legacy": "node --experimental-strip-types --experimental-specifier-resolution=node src/scripts/seed-sql.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

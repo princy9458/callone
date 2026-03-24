@@ -1,43 +1,80 @@
-import React from 'react';
-import { Package, ShoppingBag, Users as UsersIcon, FileText } from 'lucide-react';
+import {FileClock, Package, ShoppingBag, Users, Warehouse} from "lucide-react";
+import dbConnect from "@/lib/db/connection";
+import {Brand} from "@/lib/db/models/Brand";
+import {Order} from "@/lib/db/models/Order";
+import {Product} from "@/lib/db/models/Product";
+import {User} from "@/lib/db/models/User";
+import {Warehouse as WarehouseModel} from "@/lib/db/models/Warehouse";
+import {PageHeader} from "@/components/admin/PageHeader";
+import {SectionCard} from "@/components/admin/SectionCard";
+import {StatCard} from "@/components/admin/StatCard";
 
-const stats = [
-  { title: "Total Orders", value: "1,248", icon: ShoppingBag, change: "+12%" },
-  { title: "Active Products", value: "3,842", icon: Package, change: "+3%" },
-  { title: "Retailers", value: "64", icon: UsersIcon, change: "0%" },
-  { title: "Pending Approvals", value: "12", icon: FileText, change: "-2%" },
-];
+export default async function AdminDashboardPage() {
+  await dbConnect();
 
-export default function AdminDashboardPage() {
+  const [orderCount, productCount, userCount, warehouseCount, brandCount, pendingOrders] =
+    await Promise.all([
+      Order.countDocuments(),
+      Product.countDocuments(),
+      User.countDocuments({roleKey: {$ne: "retailer"}}),
+      WarehouseModel.countDocuments(),
+      Brand.countDocuments(),
+      Order.countDocuments({workflowStatus: {$in: ["submitted", "availability_check", "manager_approval"]}}),
+    ]);
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
-          <p className="text-foreground/60 text-sm mt-1">Metrics across all Callaway B2B portals.</p>
-        </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Admin overview"
+        description="Live status for the CallawayOne admin rebuild. This dashboard now reflects Mongo-backed counts across catalog, users, orders, warehouses, and brand structure."
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <StatCard label="Orders" value={orderCount} hint={`${pendingOrders} pending workflow actions`} icon={ShoppingBag} />
+        <StatCard label="Products" value={productCount} hint={`${brandCount} active brand collections`} icon={Package} />
+        <StatCard label="Admin users" value={userCount} hint="Managers, admins, and sales reps" icon={Users} />
+        <StatCard label="Warehouses" value={warehouseCount} hint="Dynamic inventory locations" icon={Warehouse} />
+        <StatCard label="Pending approvals" value={pendingOrders} hint="Submitted, availability, manager approval" icon={FileClock} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div key={stat.title} className="p-6 bg-surface border border-border flex flex-col gap-2 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground/70">{stat.title}</span>
-              <stat.icon size={20} className="text-primary" />
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <SectionCard
+          title="Current implementation status"
+          description="The rebuild now uses Mongo-backed auth and normalized admin entities. The next layers are deeper order editing, attachment workflows, import pipelines, and PDF/catalog generation."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-[24px] border border-border/60 bg-background/70 p-5">
+              <h3 className="text-base font-semibold text-foreground">Operational now</h3>
+              <ul className="mt-3 space-y-2 text-sm text-foreground/65">
+                <li>Mongo-backed credentials with RBAC-aware middleware</li>
+                <li>CRUD surfaces for roles, users, brands, warehouses, and products</li>
+                <li>Variant generation and warehouse-level inventory documents</li>
+                <li>Order listing, creation foundation, and workflow transitions</li>
+              </ul>
             </div>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{stat.value}</span>
-              <span className={stat.change.startsWith('+') ? "text-success text-sm font-medium pb-1" : "text-danger text-sm font-medium pb-1"}>
-                {stat.change}
-              </span>
+            <div className="rounded-[24px] border border-border/60 bg-background/70 p-5">
+              <h3 className="text-base font-semibold text-foreground">Next milestone</h3>
+              <ul className="mt-3 space-y-2 text-sm text-foreground/65">
+                <li>SQL import parity across legacy product and order tables</li>
+                <li>Bulk import/export jobs and attachment management</li>
+                <li>PDF, catalog, and PPT output generation</li>
+                <li>Deeper order edit flows and stock reservation automation</li>
+              </ul>
             </div>
           </div>
-        ))}
-      </div>
-      
-      {/* Spacer for aesthetics */}
-      <div className="h-48 border-2 border-dashed border-border rounded-xl flex items-center justify-center text-foreground/40 text-sm font-medium mt-8">
-        Recent Activity Chart Placeholder
+        </SectionCard>
+
+        <SectionCard
+          title="Suggested next steps"
+          description="Recommended sequence for the next admin delivery wave."
+        >
+          <ol className="space-y-4 text-sm text-foreground/65">
+            <li className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">1. Stabilize migration data and complete CSV/XLSX import pipelines.</li>
+            <li className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">2. Finish order editor with variant picking, availability checks, and note history.</li>
+            <li className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">3. Add file exports, approvals, and attachment-aware PDF generation.</li>
+            <li className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">4. Extend admin media and catalog tooling before public commerce.</li>
+          </ol>
+        </SectionCard>
       </div>
     </div>
   );
