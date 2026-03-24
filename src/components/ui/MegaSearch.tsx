@@ -3,7 +3,7 @@
 import React, {useDeferredValue, useEffect, useState} from "react";
 import {usePathname, useRouter} from "next/navigation";
 import {AnimatePresence, motion} from "framer-motion";
-import {ArrowRight, Command, CornerDownLeft, Search, Sparkles, X} from "lucide-react";
+import {ArrowRight, Command, CornerDownLeft, Search, Sparkles, WandSparkles, X} from "lucide-react";
 import {ADMIN_COMMAND_ITEMS, type AdminCommandGroup} from "@/lib/admin/command-center";
 
 interface MegaSearchProps {
@@ -13,6 +13,11 @@ interface MegaSearchProps {
 }
 
 const SCOPES: Array<"All" | AdminCommandGroup> = ["All", "Navigate", "Create", "Operations"];
+const SEARCH_GUIDES = [
+  "Try “sheet calibration” to jump into the CSV intake workspace.",
+  "Search with a workflow phrase like “create order” or “warehouse stock”.",
+  "Use scope chips to narrow the results before typing.",
+];
 
 export function MegaSearch({isOpen, onClose, role}: MegaSearchProps) {
   const router = useRouter();
@@ -126,7 +131,7 @@ export function MegaSearch({isOpen, onClose, role}: MegaSearchProps) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search routes, actions, products, or operations..." 
+                placeholder="Search routes, actions, imports, products, or operations..." 
                 className="flex-1 bg-transparent border-none px-1 text-base text-white outline-none placeholder:text-white/34 sm:text-lg"
               />
               <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
@@ -160,6 +165,22 @@ export function MegaSearch({isOpen, onClose, role}: MegaSearchProps) {
             </div>
 
             <div className="flex-1 space-y-2 overflow-y-auto p-3">
+              {!deferredQuery ? (
+                <div className="grid gap-2 rounded-[24px] border border-white/10 bg-white/4 p-3 md:grid-cols-3">
+                  {SEARCH_GUIDES.map((guide) => (
+                    <div
+                      key={guide}
+                      className="rounded-[20px] border border-white/10 bg-white/4 px-3 py-3"
+                    >
+                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-white/8 text-white">
+                        <WandSparkles size={16} />
+                      </div>
+                      <p className="text-sm leading-6 text-white/68">{guide}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
               {visibleItems.length ? (
                 visibleItems.map((item, index) => {
                   const Icon = item.icon;
