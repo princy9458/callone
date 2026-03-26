@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import TravisHome from "./travismethew/TravisHome";
 import OgioHome from "./Ogio/OgioHome";
 import HardgoodHome from "./callaway-hardgoods/HardgoodHome";

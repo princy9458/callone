@@ -21,6 +21,7 @@ export default async function ProductSectionPage({
   }
 
   const rawCatalog = await loadRawBrandCatalogRecords(section.slug);
+  console.log("rawCatalog", rawCatalog?.products.length);
   if (rawCatalog?.products.length) {
     if (section.slug === "ogio") {
       return (
