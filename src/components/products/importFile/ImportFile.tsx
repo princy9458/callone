@@ -23,7 +23,7 @@ export default function ImportFile({isOpen,onClose}:Props) {
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [summary, setSummary] = useState<ImportSummary | null>(null);
-  console.log("summary--->",summary)
+  
   const [importProduct, setImportProduct] = useState<ProductExcelData[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null);
    const {currentBrand}=useSelector((state:RootState)=>state.brand)
