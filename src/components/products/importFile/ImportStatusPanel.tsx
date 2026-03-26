@@ -6,7 +6,7 @@ export type ImportStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 export type ImportIssue = {
   rowIndex: number;
-  baseSku: string;
+  sku: string;
   reason: string;
 };
 
@@ -109,12 +109,12 @@ export default function ImportStatusPanel({
           <div className="mt-3 max-h-48 space-y-2 overflow-auto pr-2">
             {visibleErrors.map((issue, index) => (
               <div
-                key={`${issue.baseSku || 'row'}-${issue.rowIndex}-${index}`}
+                key={`${issue.sku || 'row'}-${issue.rowIndex}-${index}`}
                 className="rounded-2xl border border-border/70 bg-[color:var(--surface)] px-3 py-2 text-xs text-foreground/66"
               >
                 <div className="font-semibold text-foreground">
                   Row {issue.rowIndex + 2}
-                  {issue.baseSku ? ` · ${issue.baseSku}` : ''}
+                  {issue.sku ? ` · ${issue.sku}` : ''}
                 </div>
                 <div className="mt-1 text-foreground/58">{issue.reason}</div>
               </div>

@@ -17,10 +17,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import {toCsv} from "@/lib/utils/csv";
 import GetAllBrands from "../brands/GetAllBrands";
 import GetAllAtributeSet from "../attributeSet/GetAllAtributeSet";
-import { ProductCatalogRecord, ProductCatalogWorkspaceProps } from "../products/ProductType";
+import { ProductCatalogWorkspaceProps } from "../products/ProductType";
 import { buildExportRows, downloadCsv } from "../products/utils/ProductExcel";
 import UpdateBrandAttribute from "../products/UpdateBrandAttribute";
 import ImportFile from "../products/importFile/ImportFile";

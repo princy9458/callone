@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ProductExcelData } from '@/components/products/ProductType';
 
-const API_URL = '/api/admin/products';
+const API_URL = '/api/admin/products/travismethew';
 
 export const fetchTravisMathew = createAsyncThunk<ProductExcelData[], void, { rejectValue: string }>(
   'travisMathew/fetchAll',
@@ -55,16 +55,16 @@ export const createTravisMathew = createAsyncThunk<
 
 export const updateTravisMathew = createAsyncThunk<
   ProductExcelData,
-  { baseSku: string; data: Partial<ProductExcelData> },
+  { sku: string; data: Partial<ProductExcelData> },
   { rejectValue: string }
 >(
   'travisMathew/update',
-  async ({ baseSku, data }, { rejectWithValue }) => {
+  async ({ sku, data }, { rejectWithValue }) => {
     try {
       const response = await fetch(API_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ ...data, baseSku }]),
+        body: JSON.stringify([{ ...data, sku }]),
       });
       if (!response.ok) throw new Error('Failed to update TravisMathew product');
       const responseData = await response.json();
@@ -77,15 +77,15 @@ export const updateTravisMathew = createAsyncThunk<
 
 export const deleteTravisMathew = createAsyncThunk<string, string, { rejectValue: string }>(
   'travisMathew/delete',
-  async (baseSku, { rejectWithValue }) => {
+  async (sku, { rejectWithValue }) => {
     try {
       const response = await fetch(API_URL, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([baseSku]),
+        body: JSON.stringify([sku]),
       });
       if (!response.ok) throw new Error('Failed to delete TravisMathew product');
-      return baseSku;
+      return sku;
     } catch (error: any) {
       return rejectWithValue(error.message || 'An error occurred while deleting the TravisMathew product');
     }

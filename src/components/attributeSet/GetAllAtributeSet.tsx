@@ -1,12 +1,12 @@
 "use client"
 import { AppDispatch, RootState } from '@/store'
 import { fetchAttributes } from '@/store/slices/attributeSlice/attributeThunks'
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const GetAllAtributeSet = () => {
 
-  const isApi= useRef<Boolean>(false)
+  const isApi= useRef<boolean>(false)
     const dispatch=useDispatch<AppDispatch>()
   const {isFetchedAttribute}= useSelector((state:RootState)=>state.attribute)
 
@@ -17,7 +17,7 @@ const GetAllAtributeSet = () => {
     }else{
         isApi.current=false
     }
-  },[isFetchedAttribute])
+  },[isFetchedAttribute, dispatch])
 
     
   return (

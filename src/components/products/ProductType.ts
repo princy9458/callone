@@ -44,15 +44,8 @@ export type ProductCatalogWorkspaceProps = {
 
 export interface ProductExcelData {
 
-  baseSku?: string;
   attributeSetId?: string; 
   brandId?: string;      
-  createdAt?: string;
-  metaData?: {
-    section: string;
-  };
-
-
   sku?: string;
   description?: string;
   category?: string;
@@ -73,5 +66,9 @@ export interface ProductExcelData {
   gst?: string | number;
   mrp?: string | number;
   family?: string;
+  createdAt?: string;
+  metaData?: {
+    section: string;
+  };
 
 }

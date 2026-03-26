@@ -127,7 +127,7 @@ export default function ImportFile({isOpen,onClose}:Props) {
             rowErrors.push(
               ...chunk.map((item, rowIndex) => ({
                 rowIndex: index + rowIndex,
-                baseSku: item.baseSku || item.sku || '',
+                sku: item.sku || '',
                 reason: (action.payload as string) || 'Import failed',
               }))
             );
@@ -146,8 +146,8 @@ export default function ImportFile({isOpen,onClose}:Props) {
 
         const merged = [...travismathew];
         importProduct.forEach((item) => {
-          const key = item.baseSku || item.sku || '';
-          const existingIndex = merged.findIndex((product) => (product.baseSku || product.sku) === key);
+          const key = item.sku || '';
+          const existingIndex = merged.findIndex((product) => product.sku === key);
           if (existingIndex >= 0) {
             merged[existingIndex] = item;
           } else {

@@ -82,11 +82,11 @@ export const travisMathewSlice = createSlice({
     // updateTravisMathew
     builder.addCase(updateTravisMathew.fulfilled, (state, action) => {
       const updated = action.payload;
-      const index = state.travismathew.findIndex((item) => item.baseSku === updated.baseSku);
+      const index = state.travismathew.findIndex((item) => item.sku=== updated.sku);
       if (index !== -1) {
         state.travismathew[index] = updated;
       }
-      if (state.currentTravisMathew?.baseSku === updated.baseSku) {
+      if (state.currentTravisMathew?.sku === updated.sku) {
         state.currentTravisMathew = updated;
       }
     });
@@ -97,11 +97,11 @@ export const travisMathewSlice = createSlice({
     // deleteTravisMathew
     builder.addCase(deleteTravisMathew.fulfilled, (state, action) => {
       const deletedBaseSku = action.payload;
-      state.travismathew = state.travismathew.filter((item) => item.baseSku !== deletedBaseSku);
+      state.travismathew = state.travismathew.filter((item) => item.sku !== deletedBaseSku);
       state.selectedTravisMathew = state.selectedTravisMathew.filter(
-        (item) => item.baseSku !== deletedBaseSku
+        (item) => item.sku !== deletedBaseSku
       );
-      if (state.currentTravisMathew?.baseSku === deletedBaseSku) {
+      if (state.currentTravisMathew?.sku === deletedBaseSku) {
         state.currentTravisMathew = null;
       }
     });

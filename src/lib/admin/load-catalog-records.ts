@@ -21,9 +21,6 @@ export async function loadCatalogRecords() {
   const variants = toPlainObject(variantsRaw);
   const inventoryLevels = toPlainObject(inventoryLevelsRaw);
 
-
-  
-  
   const brandMap = new Map(
     brands.map((brand) => [
       String(brand._id ?? ""),

@@ -1,12 +1,12 @@
 "use client"
 import { AppDispatch, RootState } from '@/store'
 import { fetchBrands } from '@/store/slices/brandSlice/brandThunks'
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const GetAllBrands = () => {
 
-  const isApi= useRef<Boolean>(false)
+  const isApi= useRef<boolean>(false)
     const dispatch=useDispatch<AppDispatch>()
   const {isFetchedBrand}= useSelector((state:RootState)=>state.brand)
 
@@ -17,7 +17,7 @@ const GetAllBrands = () => {
     }else{
         isApi.current=false
     }
-  },[isFetchedBrand])
+  },[isFetchedBrand, dispatch])
 
     
   return (

@@ -3,7 +3,7 @@ import { AppDispatch, RootState } from '@/store';
 import { setCurrentAttribute } from '@/store/slices/attributeSlice/attributeSlice';
 import { setCurrentBrand } from '@/store/slices/brandSlice/brandSlice';
 import { usePathname } from 'next/navigation';
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 
@@ -37,7 +37,7 @@ const UpdateBrandAttribute = () => {
            }
             
         }
-    },[brandCode,allBrand,allAttribute])
+    },[brandCode,allBrand,allAttribute,dispatch])
   return (
    null
   )

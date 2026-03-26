@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth/options";
 import dbConnect from "@/lib/db/connection";
 import { Product } from "@/lib/db/models/Product";
 import mongoose from "mongoose";
-import { slugify } from "@/lib/utils/slugify";
 
 type ImportIssue = {
     rowIndex: number;
@@ -20,36 +19,8 @@ function toText(value: unknown) {
     return String(value).trim();
 }
 
-function toNumber(value: unknown) {
-    const text = toText(value);
-    if (!text) {
-        return undefined;
-    }
 
-    const numeric = Number(text.replace(/,/g, ""));
-    return Number.isNaN(numeric) ? undefined : numeric;
-}
 
-function buildMetadata(item: any) {
-    return Object.fromEntries(
-        Object.entries({
-            sku: toText(item.sku),
-            season: toText(item.season),
-            style_code: toText(item.style_code),
-            color: toText(item.color),
-            color_code: toText(item.color_code),
-            size: toText(item.size),
-            size_type: toText(item.size_type),
-            length: toText(item.length),
-            gender: toText(item.gender),
-            line: toText(item.line),
-            family: toText(item.family),
-            variation_sku: toText(item.variation_sku),
-            stock_90: toText(item.stock_90),
-            stock_88: toText(item.stock_88),
-        }).filter(([, value]) => value)
-    );
-}
 
 function normalizeImportProduct(item: any) {
 
@@ -158,9 +129,14 @@ export async function POST(request: Request) {
                     }
 
                     try {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const { createdAt: _createdAt, ...productWithoutCreatedAt } = product;
                         const result = await collection.updateOne(
                             { baseSku },
-                            { $set: { ...product, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+                            {
+                                $set: { ...productWithoutCreatedAt, updatedAt: new Date() },
+                                $setOnInsert: { createdAt: new Date() },
+                            },
                             { upsert: true }
                         );
 
