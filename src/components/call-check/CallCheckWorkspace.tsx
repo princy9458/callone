@@ -11,7 +11,7 @@ import {CallCheckEmptyState} from "@/components/call-check/CallCheckEmptyState";
 import {CallCheckGrid} from "@/components/call-check/CallCheckGrid";
 import {CallCheckSheetTabs} from "@/components/call-check/CallCheckSheetTabs";
 import {CallCheckToolbar} from "@/components/call-check/CallCheckToolbar";
-import {UniqueValuesModal} from "@/components/call-check/UniqueValuesModal";
+
 import {UniqueValueFloatingFilter} from "@/components/call-check/UniqueValueFloatingFilter";
 import type {CallCheckDataset, CallCheckRow} from "@/components/call-check/types";
 
@@ -64,8 +64,7 @@ export function CallCheckWorkspace({
   const [isSaving, setIsSaving] = useState(false);
   const [isDarkGrid, setIsDarkGrid] = useState(false);
   const [activeDatasetSlug, setActiveDatasetSlug] = useState(initialDatasetSlug ?? "");
-  const [isUniqueValuesOpen, setIsUniqueValuesOpen] = useState(false);
-  const [currentUniqueValues, setCurrentUniqueValues] = useState<Record<string, string[]>>({});
+
 
   const syncSheetParam = useCallback(
     (slug: string | null) => {
@@ -162,7 +161,7 @@ export function CallCheckWorkspace({
         };
 
         const uniqueVals = payload.dataset.uniqueValues || {};
-        setCurrentUniqueValues(uniqueVals);
+       // setCurrentUniqueValues(uniqueVals);
 
         setDatasets((current) => {
           if (current.some((item) => item.id === payload.dataset.id)) {
@@ -301,7 +300,7 @@ export function CallCheckWorkspace({
           computed[field] = Array.from(values).sort();
         }
       });
-      setCurrentUniqueValues(computed);
+     // setCurrentUniqueValues(computed);
 
       const processed = processRowsFromSheet(rawData, computed);
 
@@ -312,7 +311,7 @@ export function CallCheckWorkspace({
     },
     [processRowsFromSheet, setGridData, syncSheetParam]
   );
-
+  console.log("rowData",rowData)
   const processFile = useCallback(
     (file: File) => {
       const reader = new FileReader();
@@ -420,7 +419,7 @@ export function CallCheckWorkspace({
       setActiveSheet(payload.dataset.name);
       
       if (payload.dataset.uniqueValues) {
-        setCurrentUniqueValues(payload.dataset.uniqueValues);
+       // setCurrentUniqueValues(payload.dataset.uniqueValues);
       }
       
       setGridData(payload.rows, buildColumnsFromObjects(payload.rows, payload.dataset.uniqueValues));
@@ -566,12 +565,7 @@ export function CallCheckWorkspace({
         />
       )}
 
-      <UniqueValuesModal
-        isOpen={isUniqueValuesOpen}
-        onClose={() => setIsUniqueValuesOpen(false)}
-        uniqueValues={currentUniqueValues}
-        columns={columnDefs.map((c) => String(c.field ?? "")).filter((f) => f && f !== "imageUrl")}
-      />
+  
     </div>
   );
 }
