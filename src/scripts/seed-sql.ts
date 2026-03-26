@@ -234,7 +234,7 @@ async function importBrands(rows: SqlRow[]) {
         isActive: String(row.status ?? "active") === "active",
         legacyId,
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
     brandMap.set(legacyId, brand._id.toString());
   }
@@ -287,7 +287,7 @@ async function importUsers(rows: SqlRow[]) {
         secondaryEmail: String(row.secondary_email ?? ""),
         status: String(row.status ?? "active") === "active" ? "active" : "inactive",
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
 
     userIdMap.set(legacyId, user._id.toString());
@@ -450,7 +450,7 @@ async function importProducts(sqlContent: string, brandMap: Map<number, string>)
             legacySku: String(entry.product.sku || ""),
           },
         },
-        {upsert: true, new: true}
+        {upsert: true, returnDocument: "after"}
       );
 
       for (const row of entry.rows) {
@@ -477,7 +477,7 @@ async function importProducts(sqlContent: string, brandMap: Map<number, string>)
             legacyWarehouseHint:
               toNumber(row.stock_90) > 0 ? "WH90" : toNumber(row.stock_88) > 0 ? "WH88" : "",
           },
-          {upsert: true, new: true}
+          {upsert: true, returnDocument: "after"}
         );
 
         skuToVariantId.set(String(row.sku), variant._id.toString());
@@ -507,7 +507,7 @@ async function importProducts(sqlContent: string, brandMap: Map<number, string>)
               blocked: 0,
               available: inventory.onHand,
             },
-            {upsert: true, new: true}
+            {upsert: true, returnDocument: "after"}
           );
         }
       }
@@ -534,7 +534,7 @@ async function importBlockedStock(rows: SqlRow[], skuToVariantId: Map<string, st
         quantity: toNumber(row.qty),
         source: "legacy",
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 }
@@ -615,7 +615,7 @@ async function importOrders(
           createdAt: note.date ? new Date(String(note.date)) : new Date(),
         })),
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 }

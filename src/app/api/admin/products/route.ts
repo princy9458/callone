@@ -5,7 +5,6 @@ import dbConnect from "@/lib/db/connection";
 import { Product } from "@/lib/db/models/Product";
 import mongoose from "mongoose";
 import { slugify } from "@/lib/utils/slugify";
-import { initPrefersReducedMotion } from "framer-motion";
 
 type ImportIssue = {
     rowIndex: number;
@@ -313,7 +312,7 @@ export async function PUT(request: Request) {
         // Handling single update
         if (body.baseSku || body._id) {
             const filter = body._id ? { _id: body._id } : { baseSku: body.baseSku };
-            const updatedProduct = await Product.findOneAndUpdate(filter, body, { new: true });
+            const updatedProduct = await Product.findOneAndUpdate(filter, body, { returnDocument: "after" });
             return NextResponse.json({ data: updatedProduct, success: true });
         }
 

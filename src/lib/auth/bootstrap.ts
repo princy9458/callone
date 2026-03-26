@@ -32,7 +32,7 @@ export async function ensureSystemBootstrap() {
           isActive: true,
         },
       },
-      {new: true, upsert: true}
+      {returnDocument: "after", upsert: true}
     );
   }
 
@@ -84,7 +84,7 @@ export async function ensureSystemBootstrap() {
           isActive: true,
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 
@@ -102,7 +102,7 @@ export async function ensureSystemBootstrap() {
           isActive: true,
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 

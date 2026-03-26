@@ -11,7 +11,7 @@ export default async function ProductSectionPage({
   params: {section: string};
 }) {
   const section = getCatalogSection(params.section);
-  console.log("section", section)
+
   if (!section) {
     notFound();
   }

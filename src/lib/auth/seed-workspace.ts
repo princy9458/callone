@@ -433,7 +433,7 @@ export async function ensureWorkspaceSeedData() {
     await AttributeSet.findOneAndUpdate(
       {key: definition.key},
       {$set: definition},
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 
@@ -472,7 +472,7 @@ export async function ensureWorkspaceSeedData() {
           passwordHash,
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 
@@ -539,7 +539,7 @@ export async function ensureWorkspaceSeedData() {
           },
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
 
     for (const variantDefinition of productDefinition.variants) {
@@ -560,7 +560,7 @@ export async function ensureWorkspaceSeedData() {
                 : "",
           },
         },
-        {upsert: true, new: true}
+        {upsert: true, returnDocument: "after"}
       );
 
       for (const warehouse of warehouses) {
@@ -579,7 +579,7 @@ export async function ensureWorkspaceSeedData() {
               available,
             },
           },
-          {upsert: true, new: true}
+          {upsert: true, returnDocument: "after"}
         );
 
         await InventoryMovement.findOneAndUpdate(
@@ -597,7 +597,7 @@ export async function ensureWorkspaceSeedData() {
               notes: "Workspace seed import",
             },
           },
-          {upsert: true, new: true}
+          {upsert: true, returnDocument: "after"}
         );
 
         if (warehouse.code === "WH88" && onHand > 0) {
@@ -616,7 +616,7 @@ export async function ensureWorkspaceSeedData() {
                 notes: `Available after seed: ${level.available}`,
               },
             },
-            {upsert: true, new: true}
+            {upsert: true, returnDocument: "after"}
           );
         }
       }
@@ -651,7 +651,7 @@ export async function ensureWorkspaceSeedData() {
           source: "manual",
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 
@@ -776,7 +776,7 @@ export async function ensureWorkspaceSeedData() {
           ],
         },
       },
-      {upsert: true, new: true}
+      {upsert: true, returnDocument: "after"}
     );
   }
 
@@ -854,7 +854,7 @@ export async function ensureWorkspaceSeedData() {
         },
       },
     },
-    {upsert: true, new: true}
+    {upsert: true, returnDocument: "after"}
   );
 
   await SheetRow.deleteMany({datasetId: dataset._id});

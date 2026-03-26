@@ -21,10 +21,7 @@ export async function loadCatalogRecords() {
   const variants = toPlainObject(variantsRaw);
   const inventoryLevels = toPlainObject(inventoryLevelsRaw);
 
-  console.log("products", products);
-  console.log("brands", brands);
-  console.log("variants", variants);
-  console.log("inventoryLevels", inventoryLevels);
+
   
   
   const brandMap = new Map(

@@ -588,6 +588,6 @@ export async function importLegacyOrderSnapshot({
       pricing,
       notesTimeline,
     },
-    {upsert: true, new: true}
+    {upsert: true, returnDocument: "after"}
   );
 }
