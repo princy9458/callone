@@ -7,6 +7,7 @@ import {Role} from "@/lib/db/models/Role";
 import {User} from "@/lib/db/models/User";
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {strategy: "jwt"},
   providers: [
     CredentialsProvider({
