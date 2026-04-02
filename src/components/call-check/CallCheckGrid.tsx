@@ -41,7 +41,10 @@ export function CallCheckGrid({
 
       <div
         className={`${isDarkGrid ? "ag-theme-quartz-dark" : "ag-theme-quartz"} h-[68vh] w-full`}
-        style={{["--ag-font-size" as string]: "13px", ["--ag-font-family" as string]: "Inter, system-ui, sans-serif"}}
+        style={{
+          ["--ag-font-size" as string]: "13px",
+          ["--ag-font-family" as string]: "var(--font-geist-sans), system-ui, sans-serif",
+        }}
       >
         <AgGridReact<CallCheckRow>
           ref={gridRef}
