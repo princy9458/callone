@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         }
 
         await dbConnect();
-        const collection = mongoose.connection.db!.collection("travismethew");
+        const collection = mongoose.connection.db!.collection("product_travis");
 
         const { searchParams } = new URL(request.url);
         const query: Record<string, unknown> = {};
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
         }
 
         const page  = Math.max(1, parseInt(searchParams.get("page")  ?? "1",  10));
-        const limit = Math.min(500, Math.max(1, parseInt(searchParams.get("limit") ?? "100", 10)));
+        const limit = Math.min(5000, Math.max(1, parseInt(searchParams.get("limit") ?? "100", 10)));
         const skip  = (page - 1) * limit;
 
         const [products, total] = await Promise.all([

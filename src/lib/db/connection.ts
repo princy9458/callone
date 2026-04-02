@@ -81,12 +81,13 @@ function normalizeMongoUri(rawUri: string) {
 // ---------- Main DB Connect ----------
 
 export default async function dbConnect() {
-  const rawMongoUri = process.env.MONGODB_URI;
+  const rawMongoUri =
+    process.env.MONGODB_URI ?? process.env.NEXTAUTH_MONGODB_URI;
 
   if (!rawMongoUri) {
-    console.error("DB_CONNECT_ERROR: MONGODB_URI is not defined.");
+    console.error("DB_CONNECT_ERROR: MongoDB URI is not defined.");
     throw new Error(
-      "Missing MONGODB_URI. Add it to your .env.local file."
+      "Missing MONGODB_URI or NEXTAUTH_MONGODB_URI. Add one of them to your deployment environment."
     );
   }
 

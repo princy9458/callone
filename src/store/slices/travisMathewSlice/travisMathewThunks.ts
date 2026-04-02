@@ -8,7 +8,7 @@ export const fetchTravisMathew = createAsyncThunk<TravisMathewType[], void, { re
   'travisMathew/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_URL}?limit=5000`);
       if (!response.ok) throw new Error('Failed to fetch TravisMathew products');
       const data = await response.json();
       return data.data as TravisMathewType[];

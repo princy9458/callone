@@ -123,7 +123,7 @@ CallawayOne is the monolithic replacement for the legacy OMS. The rebuild keeps 
 - `/admin/*` is server-rendered and force-dynamic.
 - `/login` is force-dynamic.
 - Build no longer requires database access just to pre-render admin pages.
-- Runtime still requires `NEXTAUTH_MONGODB_URI`.
+- Runtime still requires `MONGODB_URI` (or `NEXTAUTH_MONGODB_URI` for older deployments).
 
 ### 2. Auth split
 
@@ -558,7 +558,7 @@ Notes:
 Create `.env.local`:
 
 ```bash
-NEXTAUTH_MONGODB_URI=your-mongodb-uri
+MONGODB_URI=your-mongodb-uri
 NEXTAUTH_SECRET=your-nextauth-secret
 CALLONE_BOOTSTRAP_ADMIN_EMAIL=admin@callone.local
 CALLONE_BOOTSTRAP_ADMIN_PASSWORD=CalloneAdmin@123
@@ -567,7 +567,7 @@ MONGODB_AUTH_SOURCE=admin
 
 Important:
 
-- `NEXTAUTH_MONGODB_URI` is required at runtime.
+- `MONGODB_URI` is required at runtime.
 - Build is safe without DB only because admin/login routes are force-dynamic.
 - The login bootstrap only refreshes the seeded auth accounts, so the bootstrap admin password follows `CALLONE_BOOTSTRAP_ADMIN_PASSWORD`.
 - If you need the full demo dataset in production, run `npm run seed` against the target database once.

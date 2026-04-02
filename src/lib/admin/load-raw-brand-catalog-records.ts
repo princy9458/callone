@@ -233,6 +233,7 @@ async function loadCollectionRecords(config: RawCatalogConfig): Promise<ProductC
   }
 
   const rows = (await database.collection(config.collectionName).find({}).toArray()) as Array<Record<string, unknown>>;
+  console.log("rows length--->",rows.length)
   const groupedRows = new Map<string, Record<string, unknown>[]>();
 
   for (const row of rows) {
@@ -310,14 +311,17 @@ export async function loadRawBrandCatalogRecords(sectionSlug: string) {
   if (!database) {
     return null;
   }
-
+  console.log("config.collectionName----->", config.collectionName);
   const collections = await database.listCollections({}, {nameOnly: true}).toArray();
+  console.log("collections length", collections.length)
   const exists = collections.some((collection) => collection.name === config.collectionName);
+
   if (!exists) {
     return null;
   }
-
+  console.log("exists----->", exists);
   const products = await loadCollectionRecords(config);
+  console.log("travis. products----->", products.length);
   return {
     products,
     collectionName: config.collectionName,
