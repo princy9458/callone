@@ -3,6 +3,7 @@
 Admin-first Next.js + MongoDB rebuild of the legacy Callaway OMS stack.
 
 This repository replaces:
+
 - `OLD/CallaWayManagement` (`React.js`)
 - `OLD/CallawayManagementServer` (`Node.js`)
 - `u683660902_calloms_full.sql` (`MySQL`)
@@ -10,6 +11,7 @@ This repository replaces:
 The current focus is the internal ecommerce admin: brands, products, variants, warehouses, users, roles, exports, sheet calibration imports, and order creation with reservation-aware stock handling. Public storefront, catalog/PPT generation, upload flows beyond CSV, and advanced approval tooling are still in progress.
 
 ## Table of Contents
+
 - [Project Overview](#project-overview)
 - [Current Status](#current-status)
 - [Architecture Decisions](#architecture-decisions)
@@ -33,20 +35,21 @@ The current focus is the internal ecommerce admin: brands, products, variants, w
 
 CallawayOne is the monolithic replacement for the legacy OMS. The rebuild keeps the legacy business concepts, but normalizes them into reusable admin modules:
 
-| Module | Legacy Reality | CallawayOne Direction |
-|---|---|---|
-| Auth | Demo role switching in scaffold, mixed role logic in old apps | NextAuth credentials against Mongo users + role permissions |
-| Brands | Brand-specific code paths and product tables | Shared `brands` collection + brand-aware admin routes |
-| Products | Separate MySQL tables per brand family | Unified `products` + generated `variants` |
-| Warehouses | `stock_88` / `stock_90` columns | `warehouses` + `inventoryLevels` + `inventoryMovements` |
-| Blocked Qty | Legacy blocked qty rows | `blockedStock` collection + availability-aware reservations |
-| Orders | Snapshot-heavy relational flow | Mongo `orders` with pricing snapshots and timeline |
-| Sheet uploads | Separate `OLD/call-check` experiment for generic intake | Integrated `/admin/imports/sheet-calibration` workspace with Mongo-backed datasets |
-| Exports | Existing CSV/PDF/catalog expectations | First-pass CSV exports implemented, PDF/catalog pending |
+| Module        | Legacy Reality                                                | CallawayOne Direction                                                              |
+| ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Auth          | Demo role switching in scaffold, mixed role logic in old apps | NextAuth credentials against Mongo users + role permissions                        |
+| Brands        | Brand-specific code paths and product tables                  | Shared `brands` collection + brand-aware admin routes                              |
+| Products      | Separate MySQL tables per brand family                        | Unified `products` + generated `variants`                                          |
+| Warehouses    | `stock_88` / `stock_90` columns                               | `warehouses` + `inventoryLevels` + `inventoryMovements`                            |
+| Blocked Qty   | Legacy blocked qty rows                                       | `blockedStock` collection + availability-aware reservations                        |
+| Orders        | Snapshot-heavy relational flow                                | Mongo `orders` with pricing snapshots and timeline                                 |
+| Sheet uploads | Separate `OLD/call-check` experiment for generic intake       | Integrated `/admin/imports/sheet-calibration` workspace with Mongo-backed datasets |
+| Exports       | Existing CSV/PDF/catalog expectations                         | First-pass CSV exports implemented, PDF/catalog pending                            |
 
 ## Current Status
 
 ### Implemented now
+
 - Next.js App Router admin shell with light and dark theme support.
 - Sticky admin header with compact navigation, brand submenus, cart entry, theme toggle, and profile-side role preview.
 - Role preview switcher in the header for "view as" navigation and search filtering by role.
@@ -97,11 +100,13 @@ CallawayOne is the monolithic replacement for the legacy OMS. The rebuild keeps 
 - `README.md`, `docs/implementation_plan.md`, and `products-sample-db-schema.md` aligned to the actual rebuild.
 
 ### Implemented, but still foundational
+
 - Imports hub and sheet-calibration workspace are live, but broader XLSX import jobs and blocked-stock maintenance screens are still pending.
 - Legacy SQL migration script is substantially broader than the original scaffold, but still needs validation against production fixtures.
 - Order flow supports status progression and inventory transitions, but not yet multi-actor approval UI parity.
 
 ### Not implemented yet
+
 - File uploads for brand/product/order media.
 - XLSX and multi-job import parity beyond the current CSV calibration workspace.
 - PDF export for orders.
@@ -114,25 +119,31 @@ CallawayOne is the monolithic replacement for the legacy OMS. The rebuild keeps 
 ## Architecture Decisions
 
 ### 1. Admin-first rendering
+
 - `/admin/*` is server-rendered and force-dynamic.
 - `/login` is force-dynamic.
 - Build no longer requires database access just to pre-render admin pages.
-- Runtime still requires `MONGODB_URI`.
+- Runtime still requires `NEXTAUTH_MONGODB_URI`.
 
 ### 2. Auth split
+
 - `src/middleware.ts` uses token-only route protection.
 - `src/lib/auth/options.ts` contains full NextAuth credentials logic.
 - `src/lib/auth/session.ts` is the server-side session guard for admin routes and actions.
 
 ### 3. Unified catalog model
+
 Legacy brand tables are replaced with:
+
 - `products`: shared product definition
 - `variants`: one SKU per option combination
 - `inventoryLevels`: stock per warehouse per variant
 - `blockedStock`: legacy and manual blocked quantities
 
 ### 4. Local media for now
+
 All media remains under `public/images/*` so current design assets can be reused without external storage:
+
 - `public/images/brands`
 - `public/images/products`
 - `public/images/users`
@@ -140,10 +151,13 @@ All media remains under `public/images/*` so current design assets can be reused
 - `public/images/catalogs`
 
 ### 5. Snapshot-based orders
+
 Orders keep line pricing and participant snapshots. This preserves the legacy OMS behavior where financials and assignments must remain stable even if user, product, or pricing master data changes later.
 
 ### 6. `call-check` folded into core admin
+
 `OLD/call-check` remains a read-only reference. Its sheet-intake concept now lives inside CallawayOne through:
+
 - `/admin/imports/sheet-calibration`
 - `SheetDataset` and `SheetRow` Mongo collections
 - `/api/admin/sheets` route handlers
@@ -154,19 +168,20 @@ The target architecture is one admin shell, one auth system, and no separate pro
 
 Current admin access rules:
 
-| Route / Capability | super_admin | admin | manager | sales_rep | retailer |
-|---|---|---|---|---|---|
-| `/login` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `/admin` shell access | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Header "view as" preview | ✅ | ✅ | ✅ | ✅ | n/a |
-| Brands CRUD | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Products CRUD | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Warehouse CRUD | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Users CRUD | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Roles CRUD | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Orders create/view/update | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Route / Capability        | super_admin | admin | manager | sales_rep | retailer |
+| ------------------------- | ----------- | ----- | ------- | --------- | -------- |
+| `/login`                  | ✅          | ✅    | ✅      | ✅        | ✅       |
+| `/admin` shell access     | ✅          | ✅    | ✅      | ✅        | ❌       |
+| Header "view as" preview  | ✅          | ✅    | ✅      | ✅        | n/a      |
+| Brands CRUD               | ✅          | ✅    | ✅      | ✅        | ❌       |
+| Products CRUD             | ✅          | ✅    | ✅      | ✅        | ❌       |
+| Warehouse CRUD            | ✅          | ✅    | ✅      | ✅        | ❌       |
+| Users CRUD                | ✅          | ✅    | ✅      | ✅        | ❌       |
+| Roles CRUD                | ✅          | ✅    | ❌      | ❌        | ❌       |
+| Orders create/view/update | ✅          | ✅    | ✅      | ✅        | ❌       |
 
 System roles currently seeded:
+
 - `super_admin`
 - `admin`
 - `manager`
@@ -175,36 +190,37 @@ System roles currently seeded:
 
 ## Admin Route Map
 
-| Route | Status | Notes |
-|---|---|---|
-| `/login` | live | Credentials auth against Mongo users |
-| `/admin` | live | Overview dashboard with live counts |
-| `/admin/analytics` | live | Weekly trends, top products, role mix, and people insights |
-| `/admin/orders` | live | Order list and detail route |
-| `/admin/orders/new` | live | Admin checkout with availability-aware reservation |
-| `/admin/cart` | live | Assisted cart entry that redirects into order creation with query defaults |
-| `/admin/orders/[id]` | live | Summary + timeline + status update |
-| `/admin/products` | live | Redirects into the default Callaway Softgoods brand catalog |
-| `/admin/products/brand/[section]` | live | Brand-specific catalog explorer for Softgoods, Hardgoods, Ogio, and Travis Mathew |
-| `/admin/products/new` | live | Product create with variant generation |
-| `/admin/products/[id]/edit` | live | Product edit |
-| `/admin/accounts` | live | Redirects into the complete accounts list |
-| `/admin/accounts/[section]` | live | Role-wise account workspace with create, list, edit, delete, and assignments |
-| `/admin/brands` | live | Brand create/list/export |
-| `/admin/brands/[id]/edit` | live | Brand edit |
-| `/admin/warehouses` | live | Warehouse CRUD + stock summary |
-| `/admin/warehouses/[id]/edit` | live | Warehouse edit |
-| `/admin/users` | live | User CRUD + assignments |
-| `/admin/users/[id]/edit` | live | User edit |
-| `/admin/roles` | live | Role CRUD + export |
-| `/admin/roles/[id]/edit` | live | Role edit |
-| `/admin/imports` | live | Import hub for calibration and migration workflows |
-| `/admin/imports/sheet-calibration` | live | CSV upload, save, calibrate, reopen, and export sheet datasets |
-| `/admin/customizer` | legacy placeholder | kept out of core admin rebuild scope |
+| Route                              | Status             | Notes                                                                             |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------- |
+| `/login`                           | live               | Credentials auth against Mongo users                                              |
+| `/admin`                           | live               | Overview dashboard with live counts                                               |
+| `/admin/analytics`                 | live               | Weekly trends, top products, role mix, and people insights                        |
+| `/admin/orders`                    | live               | Order list and detail route                                                       |
+| `/admin/orders/new`                | live               | Admin checkout with availability-aware reservation                                |
+| `/admin/cart`                      | live               | Assisted cart entry that redirects into order creation with query defaults        |
+| `/admin/orders/[id]`               | live               | Summary + timeline + status update                                                |
+| `/admin/products`                  | live               | Redirects into the default Callaway Softgoods brand catalog                       |
+| `/admin/products/brand/[section]`  | live               | Brand-specific catalog explorer for Softgoods, Hardgoods, Ogio, and Travis Mathew |
+| `/admin/products/new`              | live               | Product create with variant generation                                            |
+| `/admin/products/[id]/edit`        | live               | Product edit                                                                      |
+| `/admin/accounts`                  | live               | Redirects into the complete accounts list                                         |
+| `/admin/accounts/[section]`        | live               | Role-wise account workspace with create, list, edit, delete, and assignments      |
+| `/admin/brands`                    | live               | Brand create/list/export                                                          |
+| `/admin/brands/[id]/edit`          | live               | Brand edit                                                                        |
+| `/admin/warehouses`                | live               | Warehouse CRUD + stock summary                                                    |
+| `/admin/warehouses/[id]/edit`      | live               | Warehouse edit                                                                    |
+| `/admin/users`                     | live               | User CRUD + assignments                                                           |
+| `/admin/users/[id]/edit`           | live               | User edit                                                                         |
+| `/admin/roles`                     | live               | Role CRUD + export                                                                |
+| `/admin/roles/[id]/edit`           | live               | Role edit                                                                         |
+| `/admin/imports`                   | live               | Import hub for calibration and migration workflows                                |
+| `/admin/imports/sheet-calibration` | live               | CSV upload, save, calibrate, reopen, and export sheet datasets                    |
+| `/admin/customizer`                | legacy placeholder | kept out of core admin rebuild scope                                              |
 
 ## Collections
 
 ### `roles`
+
 - `key`
 - `name`
 - `description`
@@ -213,6 +229,7 @@ System roles currently seeded:
 - `isActive`
 
 ### `users`
+
 - auth identity and password hash
 - `roleId`, `roleKey`
 - `managerId`
@@ -221,12 +238,14 @@ System roles currently seeded:
 - status, designation, contact, code, GST, address
 
 ### `brands`
+
 - `name`, `slug`, `code`
 - website and descriptive metadata
 - brand media paths
 - active status
 
 ### `products`
+
 - brand linkage
 - category, subcategory, product type
 - status
@@ -236,6 +255,7 @@ System roles currently seeded:
 - legacy metadata
 
 ### `variants`
+
 - one row per purchasable combination
 - SKU
 - title
@@ -244,12 +264,14 @@ System roles currently seeded:
 - lifecycle status
 
 ### `warehouses`
+
 - code, name, location
 - priority
 - default flag
 - active flag
 
 ### `inventoryLevels`
+
 - unique `variantId + warehouseId`
 - `onHand`
 - `reserved`
@@ -257,15 +279,18 @@ System roles currently seeded:
 - `available`
 
 ### `inventoryMovements`
+
 - inventory audit ledger
 - types: `import`, `adjustment`, `reservation`, `release`, `shipment`, `transfer`
 
 ### `blockedStock`
+
 - legacy or manual blocked qty
 - linked by `variantId` or fallback SKU
 - may be warehouse-specific or global
 
 ### `orders`
+
 - participant snapshots
 - item snapshots
 - pricing snapshot
@@ -278,6 +303,7 @@ System roles currently seeded:
 CallawayOne replaces hardcoded stock columns with dynamic warehouse records.
 
 ### Seeded warehouses
+
 - `WH88`
 - `WH90`
 
@@ -291,6 +317,7 @@ max(0, onHand - reserved - blocked - warehouseBlockedStock - distributedGlobalBl
 ```
 
 ### Order reservation behavior
+
 - New admin orders reserve stock immediately.
 - If warehouse is not selected, the system auto-assigns the first warehouse with enough effective availability by priority.
 - If an order is cancelled or rejected, reservations are released.
@@ -302,12 +329,14 @@ max(0, onHand - reserved - blocked - warehouseBlockedStock - distributedGlobalBl
 Current pricing utility lives in `src/lib/utils/discounts.ts`.
 
 Supported modes:
+
 - `inclusive`
 - `exclusive`
 - `flat`
 - `none`
 
 Current behavior:
+
 - line-level discount is applied first
 - breakdown stores:
   - `discountAmount`
@@ -321,6 +350,7 @@ This is the current mature baseline. Exact parity validation against every legac
 ## Import Export PDF Catalog Scope
 
 ### Implemented now
+
 - CSV export API routes:
   - `/api/admin/export/brands`
   - `/api/admin/export/warehouses`
@@ -335,6 +365,7 @@ This is the current mature baseline. Exact parity validation against every legac
   - `public/sample-data/brand-calibration.csv`
 
 ### In progress / next
+
 - SQL migration from `u683660902_calloms_full.sql`
 - broader UI-driven CSV/XLSX imports beyond calibration intake
 - blocked stock maintenance screens
@@ -345,12 +376,15 @@ This is the current mature baseline. Exact parity validation against every legac
 ## Migration Strategy
 
 ### Source systems
+
 - React admin frontend in `OLD/CallaWayManagement`
 - Node API in `OLD/CallawayManagementServer`
 - MySQL dump in `u683660902_calloms_full.sql`
 
 ### Current migration script
+
 `src/scripts/seed-sql.ts` currently aims to import:
+
 - brands
 - users
 - products from the four major product tables
@@ -359,18 +393,19 @@ This is the current mature baseline. Exact parity validation against every legac
 
 ### Mapping direction
 
-| Legacy source | Target collection |
-|---|---|
-| `brands` | `brands` |
-| `callaway_apparel` | `products` + `variants` + `inventoryLevels` |
-| `callaway_hardgoods` | `products` + `variants` + `inventoryLevels` |
-| `ogio` | `products` + `variants` + `inventoryLevels` |
-| `travis` | `products` + `variants` + `inventoryLevels` |
-| `blockedqty` style rows | `blockedStock` |
-| `users` / `managers` / `retailers` | `users` |
-| order tables / snapshots | `orders` |
+| Legacy source                      | Target collection                           |
+| ---------------------------------- | ------------------------------------------- |
+| `brands`                           | `brands`                                    |
+| `callaway_apparel`                 | `products` + `variants` + `inventoryLevels` |
+| `callaway_hardgoods`               | `products` + `variants` + `inventoryLevels` |
+| `ogio`                             | `products` + `variants` + `inventoryLevels` |
+| `travis`                           | `products` + `variants` + `inventoryLevels` |
+| `blockedqty` style rows            | `blockedStock`                              |
+| `users` / `managers` / `retailers` | `users`                                     |
+| order tables / snapshots           | `orders`                                    |
 
 ### Stock conversion
+
 - `stock_88` -> warehouse `WH88`
 - `stock_90` -> warehouse `WH90`
 - unscoped blocked qty remains in `blockedStock` with `warehouseId: null`
@@ -394,8 +429,18 @@ Detailed samples live in [products-sample-db-schema.md](./products-sample-db-sch
   "taxRate": 18,
   "listPrice": 2999,
   "optionDefinitions": [
-    {"key": "color", "label": "Color", "values": ["Blue", "White"], "useForVariants": true},
-    {"key": "size", "label": "Size", "values": ["S", "M", "L"], "useForVariants": true}
+    {
+      "key": "color",
+      "label": "Color",
+      "values": ["Blue", "White"],
+      "useForVariants": true
+    },
+    {
+      "key": "size",
+      "label": "Size",
+      "values": ["S", "M", "L"],
+      "useForVariants": true
+    }
   ],
   "media": {
     "primaryImagePath": "/images/products/callaway/polo/main.jpg",
@@ -504,6 +549,7 @@ callone/
 ```
 
 Notes:
+
 - `OLD/` is intentionally excluded from TypeScript compilation and treated as read-only reference.
 - `src/scripts` is excluded from the Next.js build path but remains available for migration and seed jobs.
 
@@ -512,14 +558,15 @@ Notes:
 Create `.env.local`:
 
 ```bash
-MONGODB_URI=your-mongodb-uri
+NEXTAUTH_MONGODB_URI=your-mongodb-uri
 NEXTAUTH_SECRET=your-nextauth-secret
 CALLONE_BOOTSTRAP_ADMIN_EMAIL=admin@callone.local
 CALLONE_BOOTSTRAP_ADMIN_PASSWORD=CalloneAdmin@123
 ```
 
 Important:
-- `MONGODB_URI` is required at runtime.
+
+- `NEXTAUTH_MONGODB_URI` is required at runtime.
 - Build is safe without DB only because admin/login routes are force-dynamic.
 
 ## Scripts
@@ -535,6 +582,7 @@ npm run seed:legacy
 ```
 
 ### Script purpose
+
 - `dev`: Next.js dev server
 - `lint`: ESLint
 - `test`: Node test runner for pricing and inventory utility coverage
@@ -545,11 +593,13 @@ npm run seed:legacy
 ## Testing
 
 Current automated coverage is utility-focused:
+
 - discount calculation
 - variant cartesian generation
 - warehouse availability distribution
 
 Still needed:
+
 - server action integration tests
 - order lifecycle inventory tests against Mongo fixtures
 - migration fixture validation against sampled SQL rows
@@ -557,6 +607,7 @@ Still needed:
 ## Design System Notes
 
 The UI direction is intentionally admin-heavy, dense, and table-oriented:
+
 - sticky noir header with centered command search
 - mega-menu navigation for module access
 - responsive dense tables with sticky column headers
@@ -565,6 +616,7 @@ The UI direction is intentionally admin-heavy, dense, and table-oriented:
 - legacy-compatible local image references
 
 Current palette direction uses:
+
 - `Phantom` `#ebebef`
 - `Eclipse` `#d3d2d0`
 - `Shadow` `#949797`
@@ -577,17 +629,21 @@ The current styling is no longer placeholder-only; it now includes the premium a
 ## Delivery Phases
 
 ### Phase 1: baseline and auth
+
 - completed
 
 ### Phase 2: reusable admin shell and CRUD foundation
+
 - completed for brands, warehouses, roles, users, products, and orders
 
 ### Phase 3: inventory-aware admin checkout
+
 - partially completed
 - reservation, release, and shipment behavior now exists
 - deeper approval tooling still pending
 
 ### Phase 4: legacy parity operations
+
 - pending
 - imports
 - PDFs
@@ -596,6 +652,7 @@ The current styling is no longer placeholder-only; it now includes the premium a
 - blocked stock management UI
 
 ### Phase 5: public commerce
+
 - not started
 
 ## Known Gaps

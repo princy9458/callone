@@ -9,4 +9,4 @@ Now earlier the database product tables are created and followed some other way,
 Check the Softgood products in collection - product_softgood
 Check snapshot - I wanted to keep and prevent the design and features but wanted to populate the products data and information from product_softgood collection
 
-MONGODB_URI="mongodb+srv://raideepak:Jaipur%40302030@payload-10.kxlklht.mongodb.net/callone"
+NEXTAUTH_MONGODB_URI="mongodb+srv://raideepak:Jaipur%40302030@payload-10.kxlklht.mongodb.net/callone"

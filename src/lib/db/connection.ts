@@ -9,18 +9,18 @@ const globalCache = globalThis as typeof globalThis & {
   __mongoose__?: CachedMongoose;
 };
 
-const cached = globalCache.__mongoose__ ?? {conn: null, promise: null};
+const cached = globalCache.__mongoose__ ?? { conn: null, promise: null };
 
 if (!globalCache.__mongoose__) {
   globalCache.__mongoose__ = cached;
 }
 
 export default async function dbConnect() {
-  const MONGODB_URI = process.env.MONGODB_URI;
-  
-  if (!MONGODB_URI) {
-    console.error("DB_CONNECT_ERROR: MONGODB_URI is not defined.");
-    throw new Error("Missing MONGODB_URI. Define it in .env.local before running CallawayOne.");
+  const NEXTAUTH_MONGODB_URI = process.env.NEXTAUTH_MONGODB_URI;
+
+  if (!NEXTAUTH_MONGODB_URI) {
+    console.error("DB_CONNECT_ERROR: NEXTAUTH_MONGODB_URI is not defined.");
+    throw new Error("Missing NEXTAUTH_MONGODB_URI. Define it in .env.local before running CallawayOne.");
   }
 
   if (cached.conn) {
@@ -32,7 +32,7 @@ export default async function dbConnect() {
     const opts = {
       bufferCommands: false,
     };
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(NEXTAUTH_MONGODB_URI, opts).then((mongoose) => {
       console.log("DB_CONNECT_SUCCESS: Established connection to MongoDB.");
       return mongoose;
     });
