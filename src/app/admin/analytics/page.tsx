@@ -10,8 +10,29 @@ const money = new Intl.NumberFormat("en-IN", {
 
 export const dynamic = "force-dynamic";
 
+type DashboardInsightsInput = Parameters<typeof buildDashboardInsights>[0];
+
+const EMPTY_INSIGHTS_DATA: DashboardInsightsInput = {
+  orders: [],
+  products: [],
+  variants: [],
+  brands: [],
+  users: [],
+  inventoryLevels: [],
+};
+
 export default async function AnalyticsPage() {
-  const data = await loadInsightsData();
+  let data = EMPTY_INSIGHTS_DATA;
+  let loadError: string | null = null;
+
+  try {
+    data = await loadInsightsData();
+  } catch (error) {
+    console.error("ANALYTICS_PAGE_ERROR:", error);
+    loadError =
+      "Analytics data could not be loaded from MongoDB. Please check the production database credentials and try again.";
+  }
+
   const insights = buildDashboardInsights(data);
 
   const bestWeek =
@@ -28,6 +49,12 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-4">
+      {loadError ? (
+        <section className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-950/30 dark:text-amber-100">
+          {loadError}
+        </section>
+      ) : null}
+
       <section className="premium-card overflow-hidden rounded-[28px]">
         <div className="grid gap-4 border-b border-border/60 px-4 py-4 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-2">

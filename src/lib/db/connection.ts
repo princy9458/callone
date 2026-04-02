@@ -48,34 +48,54 @@ function stripWrappingQuotes(value: string) {
   return trimmed;
 }
 
-function normalizeMongoUri(rawUri: string) {
+function cloneMongoUrl(source: URL, authSource?: string | null) {
+  const cloned = new URL(source.toString());
+
+  if (authSource && authSource.trim()) {
+    cloned.searchParams.set("authSource", authSource.trim());
+  } else {
+    cloned.searchParams.delete("authSource");
+  }
+
+  return cloned.toString();
+}
+
+function buildMongoCandidates(rawUri: string) {
   const trimmedUri = stripWrappingQuotes(rawUri);
+  const sourceUrl = new URL(trimmedUri);
+  const explicitAuthSource = process.env.MONGODB_AUTH_SOURCE?.trim();
+  const pathDb = sourceUrl.pathname.replace(/^\/+/, "").trim() || undefined;
 
-  try {
-    const mongoUrl = new URL(trimmedUri);
+  const seen = new Set<string>();
+  const candidates: Array<{uri: string; authSource?: string}> = [];
+  const push = (uri: string, authSource?: string) => {
+    if (!seen.has(uri)) {
+      seen.add(uri);
+      candidates.push({uri, authSource});
+    }
+  };
 
-    // Ensure authSource
-    if (!mongoUrl.searchParams.has("authSource")) {
-      const explicitAuthSource = process.env.MONGODB_AUTH_SOURCE?.trim();
+  push(sourceUrl.toString(), sourceUrl.searchParams.get("authSource") ?? undefined);
 
-      if (explicitAuthSource) {
-        mongoUrl.searchParams.set("authSource", explicitAuthSource);
-      } else if (
-        mongoUrl.protocol === "mongodb+srv:" &&
-        mongoUrl.hostname.endsWith(".mongodb.net")
-      ) {
-        mongoUrl.searchParams.set("authSource", "admin");
-      }
+  if (explicitAuthSource) {
+    push(cloneMongoUrl(sourceUrl, explicitAuthSource), explicitAuthSource);
+  } else {
+    if (sourceUrl.searchParams.has("authSource")) {
+      push(cloneMongoUrl(sourceUrl, null));
     }
 
-    return mongoUrl.toString();
-  } catch (error) {
-    throw new Error(
-      `Invalid MongoDB connection string: ${
-        error instanceof Error ? error.message : "Unable to parse URI"
-      }`
-    );
+    push(cloneMongoUrl(sourceUrl, "admin"), "admin");
+
+    if (pathDb && pathDb !== "test") {
+      push(cloneMongoUrl(sourceUrl, pathDb), pathDb);
+    }
   }
+
+  return {
+    candidates,
+    host: sourceUrl.host,
+    pathDb,
+  };
 }
 
 // ---------- Main DB Connect ----------
@@ -91,7 +111,8 @@ export default async function dbConnect() {
     );
   }
 
-  const uri = normalizeMongoUri(rawMongoUri);
+  const {candidates, host, pathDb} = buildMongoCandidates(rawMongoUri);
+  const resolvedDbName = process.env.MONGODB_DB_NAME?.trim() || pathDb;
 
   // Return existing connection
   if (cached.conn) {
@@ -100,11 +121,9 @@ export default async function dbConnect() {
 
   // Create new connection promise if not exists
   if (!cached.promise) {
-    console.log("DB_CONNECT_INFO: Connecting to MongoDB...");
-
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      dbName: process.env.MONGODB_DB_NAME, // optional but recommended
+      dbName: resolvedDbName,
       connectTimeoutMS: parseTimeout(
         process.env.MONGODB_CONNECT_TIMEOUT_MS,
         10000
@@ -120,14 +139,40 @@ export default async function dbConnect() {
       mongoose.set("debug", true);
     }
 
-    cached.promise = mongoose
-      .connect(uri, opts)
-      .then((mongooseInstance) => {
+    cached.promise = (async () => {
+      let lastError: unknown = null;
+
+      for (const candidate of candidates) {
+        const candidateAuthSource = candidate.authSource ?? "(default)";
         console.log(
-          "DB_CONNECT_SUCCESS: MongoDB connection established."
+          `DB_CONNECT_INFO: Trying MongoDB host=${host} db=${resolvedDbName ?? "(default)"} authSource=${candidateAuthSource}`
         );
-        return mongooseInstance;
-      });
+
+        try {
+          const mongooseInstance = await mongoose.connect(candidate.uri, opts);
+          console.log(
+            `DB_CONNECT_SUCCESS: MongoDB connection established using authSource=${candidateAuthSource}.`
+          );
+          return mongooseInstance;
+        } catch (error) {
+          lastError = error;
+          const message = error instanceof Error ? error.message : String(error);
+
+          if (!/bad auth|authentication failed|auth failed/i.test(message)) {
+            throw error;
+          }
+
+          console.warn(
+            `DB_CONNECT_WARN: MongoDB auth failed with authSource=${candidateAuthSource}.`
+          );
+          await mongoose.disconnect().catch(() => undefined);
+        }
+      }
+
+      throw lastError instanceof Error
+        ? lastError
+        : new Error("Failed to connect to MongoDB.");
+    })();
   }
 
   try {
