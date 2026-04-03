@@ -1,10 +1,10 @@
-import {NextRequest, NextResponse} from "next/server";
-import {getServerSession} from "next-auth";
-import {authOptions} from "@/lib/auth/options";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/options";
 import dbConnect from "@/lib/db/connection";
-import {SheetDataset} from "@/lib/db/models/SheetDataset";
-import {SheetRow} from "@/lib/db/models/SheetRow";
-import {slugify} from "@/lib/utils/slugify";
+import { SheetDataset } from "@/lib/db/models/SheetDataset";
+import { SheetRow } from "@/lib/db/models/SheetRow";
+import { slugify } from "@/lib/utils/slugify";
 
 type SheetPayload = {
   name?: string;
@@ -16,7 +16,7 @@ type SheetPayload = {
 
 async function ensureUniqueSlug(baseSlug: string) {
   const slug = baseSlug || "call-check-sheet";
-  const existing = await SheetDataset.find({slug: new RegExp(`^${slug}(-\\d+)?$`, "i")})
+  const existing = await SheetDataset.find({ slug: new RegExp(`^${slug}(-\\d+)?$`, "i") })
     .select("slug")
     .lean();
 
@@ -35,11 +35,11 @@ async function ensureUniqueSlug(baseSlug: string) {
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({error: "Unauthorized"}, {status: 401});
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   await dbConnect();
-  const datasets = await SheetDataset.find({type: "generic"}).sort({createdAt: -1}).lean();
+  const datasets = await SheetDataset.find({ type: "generic" }).sort({ createdAt: -1 }).lean();
 
   return NextResponse.json({
     datasets: datasets.map((dataset) => ({
@@ -60,7 +60,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({error: "Unauthorized"}, {status: 401});
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   await dbConnect();
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
   const rows = Array.isArray(body.rows) ? body.rows : [];
 
   if (!rows.length) {
-    return NextResponse.json({error: "At least one row is required."}, {status: 400});
+    return NextResponse.json({ error: "At least one row is required." }, { status: 400 });
   }
 
   const datasetName =
@@ -80,11 +80,11 @@ export async function POST(request: NextRequest) {
     Array.isArray(body.columns) && body.columns.length
       ? body.columns
       : Array.from(
-          rows.reduce((set, row) => {
-            Object.keys(row).forEach((key) => set.add(key));
-            return set;
-          }, new Set<string>())
-        );
+        rows.reduce((set, row) => {
+          Object.keys(row).forEach((key) => set.add(key));
+          return set;
+        }, new Set<string>())
+      );
 
   const slug = await ensureUniqueSlug(slugify(datasetName));
 

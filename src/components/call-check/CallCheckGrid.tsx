@@ -47,6 +47,7 @@ export function CallCheckGrid({
         }}
       >
         <AgGridReact<CallCheckRow>
+          theme="legacy"
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}

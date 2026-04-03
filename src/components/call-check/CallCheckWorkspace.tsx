@@ -11,9 +11,15 @@ import {CallCheckEmptyState} from "@/components/call-check/CallCheckEmptyState";
 import {CallCheckGrid} from "@/components/call-check/CallCheckGrid";
 import {CallCheckSheetTabs} from "@/components/call-check/CallCheckSheetTabs";
 import {CallCheckToolbar} from "@/components/call-check/CallCheckToolbar";
+import {CallCheckSaveModal} from "@/components/call-check/CallCheckSaveModal";
 
 import {UniqueValueFloatingFilter} from "@/components/call-check/UniqueValueFloatingFilter";
 import type {CallCheckDataset, CallCheckRow} from "@/components/call-check/types";
+import ImportStatusPanel, { ImportIssue, ImportStatus, ImportSummary } from "../products/importFile/ImportStatusPanel";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { setTravisMathew } from "@/store/slices/travisMathewSlice/travisMathewSlice";
+import { createTravisMathew } from "@/store/slices/travisMathewSlice/travisMathewThunks";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -64,6 +70,18 @@ export function CallCheckWorkspace({
   const [isSaving, setIsSaving] = useState(false);
   const [isDarkGrid, setIsDarkGrid] = useState(false);
   const [activeDatasetSlug, setActiveDatasetSlug] = useState(initialDatasetSlug ?? "");
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+
+  const [status, setStatus] = useState<ImportStatus>('idle');
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState('');
+  const [summary, setSummary] = useState<ImportSummary | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { currentBrand } = useSelector((state: RootState) => state.brand);
+  const { currentAttribute } = useSelector((state: RootState) => state.attribute);
+  const { travismathew } = useSelector((state: RootState) => state.travisMathew);
 
 
   const syncSheetParam = useCallback(
@@ -311,9 +329,10 @@ export function CallCheckWorkspace({
     },
     [processRowsFromSheet, setGridData, syncSheetParam]
   );
-  console.log("rowData",rowData)
+  // console.log("rowData",rowData)
   const processFile = useCallback(
-    (file: File) => {
+    (uploadedFile: File) => {
+      setFile(uploadedFile);
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result;
@@ -329,7 +348,7 @@ export function CallCheckWorkspace({
           window.alert("Failed to parse the spreadsheet. Please upload a valid Excel or CSV file.");
         }
       };
-      reader.readAsBinaryString(file);
+      reader.readAsBinaryString(uploadedFile);
     },
     [loadSheetData]
   );
@@ -381,58 +400,166 @@ export function CallCheckWorkspace({
     [processFile]
   );
 
-  const saveToDb = useCallback(async () => {
+  const handleTravisImport = useCallback(async () => {
+      if (!rowData.length) return;
+        setStatus('uploading');
+        setProgress(0);
+        setProgressLabel('Preparing import...');
+    
+        const chunkSize = 100;
+        const totalRows = rowData.length;
+        let insertedCount = 0;
+        let updatedCount = 0;
+        let failedCount = 0;
+        const rowErrors: ImportIssue[] = [];
+
+        const mappedData = rowData.map((item: any) => ({
+          ...item,
+          attributeSetId: currentAttribute?._id,
+          brandId: currentBrand?._id,
+          createdAt: new Date().toISOString(),
+          metaData: {
+            section: ""
+          }
+        }));
+    
+        const runImport = async () => {
+          try {
+            for (let index = 0; index < mappedData.length; index += chunkSize) {
+              const chunk = mappedData.slice(index, index + chunkSize);
+              const chunkNumber = Math.floor(index / chunkSize) + 1;
+              const totalChunks = Math.ceil(mappedData.length / chunkSize);
+              setProgressLabel(`Importing chunk ${chunkNumber} of ${totalChunks}`);
+    
+              const action = await dispatch(createTravisMathew(chunk));
+              const result = action.payload as any;
+        
+              const chunkSummary = result?.summary as ImportSummary | undefined;
+    
+              if (chunkSummary) {
+                insertedCount += chunkSummary.insertedCount || 0;
+                updatedCount += chunkSummary.updatedCount || 0;
+                failedCount += chunkSummary.failedCount || 0;
+                rowErrors.push(...(chunkSummary.rowErrors || []).map((issue) => ({
+                  ...issue,
+                  rowIndex: issue.rowIndex + index,
+                })));
+              } else if (createTravisMathew.rejected.match(action)) {
+                failedCount += chunk.length;
+                rowErrors.push(
+                  ...chunk.map((item, rowIndex) => ({
+                    rowIndex: index + rowIndex,
+                    sku: item.sku || '',
+                    reason: (action.payload as string) || 'Import failed',
+                  }))
+                );
+              }
+             console.log("insertedCount",insertedCount)
+             console.log("updatedCount",updatedCount)
+             
+              setProgress(Math.min(100, Math.round(((index + chunk.length) / totalRows) * 100)));
+              setSummary({
+                totalRows,
+                insertedCount,
+                updatedCount,
+                failedCount,
+                savedCount: insertedCount + updatedCount,
+                rowErrors,
+              });
+            }
+    
+            const merged = [...travismathew];
+            mappedData.forEach((item) => {
+              const key = item.sku || '';
+              const existingIndex = merged.findIndex((product) => product.sku === key);
+              if (existingIndex >= 0) {
+                merged[existingIndex] = item;
+              } else {
+                merged.push(item);
+              }
+            });
+            dispatch(setTravisMathew(merged));
+    
+            if (insertedCount + updatedCount > 0 && failedCount === 0) {
+              setStatus('success');
+              setProgressLabel('Import completed successfully.');
+            } else {
+              setStatus(insertedCount + updatedCount > 0 ? 'success' : 'error');
+              setProgressLabel(
+                insertedCount + updatedCount > 0
+                  ? 'Import completed with some failed rows.'
+                  : 'No data was saved to the database.'
+              );
+            }
+          } catch (error: any) {
+            console.error('Import failed:', error);
+            setStatus('error');
+            setProgressLabel(error?.message || 'Import failed');
+          }
+        };
+    
+        void runImport();
+  }, [currentAttribute?._id, currentBrand?._id, dispatch, rowData, travismathew]);
+
+  const saveToDb = useCallback(async (selectedCollections: string[] = []) => {
     if (!rowData.length) {
       return;
     }
-
-    setIsSaving(true);
-    try {
-      const datasetName = activeSheet || `Sheet ${new Date().toISOString().slice(0, 10)}`;
-      const response = await fetch("/api/admin/call-check/sheets", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          name: datasetName,
-          sourceFileName: workbook ? `${datasetName}.xlsx` : `${datasetName}.csv`,
-          columns: columnDefs.map((column) => String(column.field ?? "")).filter((field) => field && field !== "imageUrl"),
-          rows: rowData.map((row) => {
-            const persistedRow = {...row};
-            delete persistedRow._id;
-            return persistedRow;
-          }),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save dataset");
+    console.log("selectedCollections-->",selectedCollections)
+      console.log("rowData-->",rowData)
+      switch(selectedCollections[0]){
+        case "product_travis":  
+            void handleTravisImport();
+            break;
       }
+          
+    // setIsSaving(true);
+    // try {
+    //   const datasetName = activeSheet || `Sheet ${new Date().toISOString().slice(0, 10)}`;
+    //   const response = await fetch("/api/admin/call-check/sheets", {
+    //     method: "POST",
+    //     headers: {"Content-Type": "application/json"},
+    //     body: JSON.stringify({
+    //       name: datasetName,
+    //       sourceFileName: workbook ? `${datasetName}.xlsx` : `${datasetName}.csv`,
+    //       columns: columnDefs.map((column) => String(column.field ?? "")).filter((field) => field && field !== "imageUrl"),
+    //       collections: selectedCollections,
+    //       rows: rowData.map((row) => {
+    //         const persistedRow = {...row};
+    //         delete persistedRow._id;
+    //         return persistedRow;
+    //       }),
+    //     }),
+    //   });
 
-      const payload = (await response.json()) as {
-        dataset: CallCheckDataset;
-        rows: CallCheckRow[];
-      };
+    //   if (!response.ok) {
+    //     throw new Error("Failed to save dataset");
+    //   }
 
-      setDatasets((current) => [payload.dataset, ...current.filter((item) => item.id !== payload.dataset.id)]);
-      setActiveDatasetSlug(payload.dataset.slug);
-      setSheets([payload.dataset.name]);
-      setActiveSheet(payload.dataset.name);
+    //   const payload = (await response.json()) as {
+    //     dataset: CallCheckDataset;
+    //     rows: CallCheckRow[];
+    //   };
+
+    //   setDatasets((current) => [payload.dataset, ...current.filter((item) => item.id !== payload.dataset.id)]);
+    //   setActiveDatasetSlug(payload.dataset.slug);
+    //   setSheets([payload.dataset.name]);
+    //   setActiveSheet(payload.dataset.name);
       
-      if (payload.dataset.uniqueValues) {
-       // setCurrentUniqueValues(payload.dataset.uniqueValues);
-      }
+    //   if (payload.dataset.uniqueValues) {
+    //    // setCurrentUniqueValues(payload.dataset.uniqueValues);
+    //   }
       
-      setGridData(payload.rows, buildColumnsFromObjects(payload.rows, payload.dataset.uniqueValues));
-      syncSheetParam(payload.dataset.slug);
-      window.alert(`Saved ${payload.rows.length} rows to the database.`);
-    } catch (error) {
-      console.error(error);
-      window.alert("Failed to save this dataset to the database.");
-    } finally {
-      setIsSaving(false);
-    }
-  }, [activeSheet, buildColumnsFromObjects, columnDefs, rowData, setGridData, syncSheetParam, workbook]);
-
+    //   setGridData(payload.rows, buildColumnsFromObjects(payload.rows, payload.dataset.uniqueValues));
+    //   syncSheetParam(payload.dataset.slug);
+    //   window.alert(`Saved ${payload.rows.length} rows to the database.`);
+    // } catch (error) {
+    //   console.error(error);
+    //   window.alert("Failed to save this dataset to the database.");
+    // } finally {
+    //   setIsSaving(false);
+    // }
+  }, [handleTravisImport, rowData]);
   const autoSizeAll = useCallback(() => {
     const allColumnIds: string[] = [];
     gridRef.current?.api?.getColumns()?.forEach((column) => {
@@ -477,6 +604,8 @@ export function CallCheckWorkspace({
   const hasData = rowData.length > 0;
 
   return (
+    <>
+
     <div
       className="space-y-4"
       onDragOver={(event) => {
@@ -515,7 +644,7 @@ export function CallCheckWorkspace({
             onOpenFile={() => fileInputRef.current?.click()}
             onAutoSize={autoSizeAll}
             onExport={exportData}
-            onSave={saveToDb}
+            onSave={() => setIsSaveModalOpen(true)}
            
             onToggleGridTheme={() => setIsDarkGrid((current) => !current)}
             onSearchChange={updateSearch}
@@ -565,7 +694,34 @@ export function CallCheckWorkspace({
         />
       )}
 
-  
+      <CallCheckSaveModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={saveToDb}
+      />
+
+      {status !== 'idle' && file && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[28px] border border-border/70 bg-background shadow-2xl p-6">
+            <ImportStatusPanel
+              file={file}
+              status={status}
+              progress={progress}
+              progressLabel={progressLabel}
+              summary={summary}
+              onClear={() => {
+                setStatus('idle');
+                setProgress(0);
+                setProgressLabel('');
+                setSummary(null);
+                setIsSaveModalOpen(false); // Make sure the modal closes when done
+              }}
+              disableClear={status === 'uploading'}
+            />
+          </div>
+        </div>
+      )}
     </div>
+      </>
   );
 }

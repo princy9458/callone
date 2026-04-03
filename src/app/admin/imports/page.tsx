@@ -5,6 +5,7 @@ import {CallCheckWorkspace} from "@/components/call-check";
 import {SectionCard} from "@/components/admin/SectionCard";
 import {loadRawBrandCatalogSourceSummaries} from "@/lib/admin/raw-brand-catalog";
 import Link from "next/link";
+import GetAllProducts from "@/components/products/GetAllProducts";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,10 @@ export default async function CallCheckPage({searchParams}: CallCheckPageProps) 
     createdAt: dataset.createdAt ? new Date(dataset.createdAt).toISOString() : new Date(0).toISOString(),
   }));
 
+
   return (
+    <>
+    <GetAllProducts/>
     <div className="space-y-8">
       <SectionCard
         title="Brand catalog intake blueprint"
@@ -127,5 +131,6 @@ export default async function CallCheckPage({searchParams}: CallCheckPageProps) 
 
       <CallCheckWorkspace initialDatasets={datasets} initialDatasetSlug={searchParams?.sheet ?? null} />
     </div>
+    </>
   );
 }

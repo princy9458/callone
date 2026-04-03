@@ -9,7 +9,7 @@ const GetAllBrands = () => {
   const isApi= useRef<boolean>(false)
     const dispatch=useDispatch<AppDispatch>()
   const {isFetchedBrand}= useSelector((state:RootState)=>state.brand)
-
+ 
   useEffect(()=>{
     if(!isFetchedBrand && !isApi.current){
       isApi.current=true

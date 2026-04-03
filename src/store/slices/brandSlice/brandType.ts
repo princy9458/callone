@@ -14,6 +14,7 @@ export interface BrandType {
   media?: BrandMedia;
   name?: string;
   slug?: string;
+  collection?:string;
   updatedAt?: string;
   websiteUrl?: string;
 }

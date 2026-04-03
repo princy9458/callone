@@ -1,4 +1,4 @@
-import mongoose, {Document, Schema} from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface ISheetDataset extends Document {
   name: string;
@@ -21,26 +21,26 @@ export interface ISheetDataset extends Document {
 
 const SheetDatasetSchema = new Schema<ISheetDataset>(
   {
-    name: {type: String, required: true, trim: true},
-    slug: {type: String, required: true, unique: true, trim: true},
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, trim: true },
     type: {
       type: String,
       enum: ["brand_calibration", "generic"],
       default: "brand_calibration",
     },
-    sourceFileName: {type: String, default: ""},
-    description: {type: String, default: ""},
-    columns: [{type: String}],
-    rowCount: {type: Number, default: 0},
-    uniqueValues: {type: Map, of: [String], default: {}},
+    sourceFileName: { type: String, default: "" },
+    description: { type: String, default: "" },
+    columns: [{ type: String }],
+    rowCount: { type: Number, default: 0 },
+    uniqueValues: { type: Map, of: [String], default: {} },
     summary: {
-      matched: {type: Number, default: 0},
-      partial: {type: Number, default: 0},
-      unmatched: {type: Number, default: 0},
-      issueCount: {type: Number, default: 0},
+      matched: { type: Number, default: 0 },
+      partial: { type: Number, default: 0 },
+      unmatched: { type: Number, default: 0 },
+      issueCount: { type: Number, default: 0 },
     },
   },
-  {timestamps: true}
+  { timestamps: true }
 );
 
 export const SheetDataset =

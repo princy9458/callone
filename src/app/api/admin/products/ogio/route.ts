@@ -26,18 +26,10 @@ function toNumber(value: unknown): number | undefined {
     return Number.isNaN(numeric) ? undefined : numeric;
 }
 
-function normalizeColumnAliases(item: any) {
-    return {
-        ...item,
-        style_code: item.style_code ?? item["style_code Code"] ?? "",
-    };
-}
-
 function normalizeItem(item: any) {
-    const normalizedItem = normalizeColumnAliases(item);
-    const brandId = toText(normalizedItem.brandId || normalizedItem.brand);
-    const attributeSetId = toText(normalizedItem.attributeSetId);
-    const sku = toText(normalizedItem.sku);
+    const brandId = toText(item.brandId || item.brand);
+    const attributeSetId = toText(item.attributeSetId);
+    const sku = toText(item.sku);
 
     if (!brandId || !mongoose.isValidObjectId(brandId)) {
         return { error: "Invalid or missing brandId" };
@@ -49,13 +41,12 @@ function normalizeItem(item: any) {
         return { error: "Missing sku" };
     }
 
-    const rest = { ...normalizedItem };
+    const rest = { ...item };
     delete rest.brandId;
     delete rest.brand;
     delete rest.attributeSetId;
     delete rest.createdAt;
     delete rest.updatedAt;
-    delete rest["style_code Code"];
 
     return {
         product: {
@@ -63,17 +54,16 @@ function normalizeItem(item: any) {
             brandId: new mongoose.Types.ObjectId(brandId),
             attributeSetId,
             // numeric coercions
-            stock_90: toNumber(normalizedItem.stock_90) ?? normalizedItem.stock_90,
-            stock_88: toNumber(normalizedItem.stock_88) ?? normalizedItem.stock_88,
-            gst: toNumber(normalizedItem.gst) ?? normalizedItem.gst,
-            mrp: toNumber(normalizedItem.mrp) ?? normalizedItem.mrp,
+            stock_90: toNumber(item.stock_90) ?? item.stock_90,
+            gst: toNumber(item.gst) ?? item.gst,
+            mrp: toNumber(item.mrp) ?? item.mrp,
             updatedAt: new Date(),
         },
     };
 }
 
 // ---------------------------------------------------------------------------
-// GET  /api/admin/products/travismethew
+// GET  /api/admin/products/ogio
 // Query params: sku, brandId, page, limit
 // ---------------------------------------------------------------------------
 export async function GET(request: Request) {
@@ -84,7 +74,7 @@ export async function GET(request: Request) {
         // }
 
         await dbConnect();
-        const collection = mongoose.connection.db!.collection("product_travis");
+        const collection = mongoose.connection.db!.collection("product_ogio");
 
         const { searchParams } = new URL(request.url);
         const query: Record<string, unknown> = {};
@@ -95,9 +85,6 @@ export async function GET(request: Request) {
         if (searchParams.has("brandId") && mongoose.isValidObjectId(searchParams.get("brandId")!)) {
             query.brandId = new mongoose.Types.ObjectId(searchParams.get("brandId")!);
         }
-        // if (searchParams.has("season")) {
-        //     query.season = searchParams.get("season");
-        // }
 
         const page  = Math.max(1, parseInt(searchParams.get("page")  ?? "1",  10));
         const limit = Math.min(5000, Math.max(1, parseInt(searchParams.get("limit") ?? "100", 10)));
@@ -116,17 +103,17 @@ export async function GET(request: Request) {
             success: true,
         });
     } catch (error: any) {
-        console.error("[travismethew] GET error:", error);
+        console.error("[ogio] GET error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to fetch TravisMathew products", success: false },
+            { error: error.message || "Failed to fetch Ogio products", success: false },
             { status: 500 }
         );
     }
 }
 
 // ---------------------------------------------------------------------------
-// POST  /api/admin/products/travismethew
-// Body: TravisMathewType[]  — bulk upsert by sku
+// POST  /api/admin/products/ogio
+// Body: OgioType[]  — bulk upsert by sku
 // ---------------------------------------------------------------------------
 export async function POST(request: Request) {
     try {
@@ -136,7 +123,7 @@ export async function POST(request: Request) {
         }
 
         await dbConnect();
-        const collection = mongoose.connection.db!.collection("product_travis");
+        const collection = mongoose.connection.db!.collection("product_ogio");
         const body = await request.json();
 
         const rows: any[] = Array.isArray(body) ? body : [body];
@@ -204,17 +191,17 @@ export async function POST(request: Request) {
             { status: savedCount > 0 ? 201 : 200 }
         );
     } catch (error: any) {
-        console.error("[travismethew] POST error:", error);
+        console.error("[ogio] POST error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to upsert TravisMathew products", success: false },
+            { error: error.message || "Failed to upsert Ogio products", success: false },
             { status: 500 }
         );
     }
 }
 
 // ---------------------------------------------------------------------------
-// PUT  /api/admin/products/travismethew
-// Body: Partial<TravisMathewType>[]  or a single object (must include sku)
+// PUT  /api/admin/products/ogio
+// Body: Partial<OgioType>[]  or a single object (must include sku)
 // ---------------------------------------------------------------------------
 export async function PUT(request: Request) {
     try {
@@ -224,7 +211,7 @@ export async function PUT(request: Request) {
         }
 
         await dbConnect();
-        const collection = mongoose.connection.db!.collection("product_travis");
+        const collection = mongoose.connection.db!.collection("product_ogio");
         const body = await request.json();
         const rows: any[] = Array.isArray(body) ? body : [body];
 
@@ -264,16 +251,16 @@ export async function PUT(request: Request) {
             },
         });
     } catch (error: any) {
-        console.error("[travismethew] PUT error:", error);
+        console.error("[ogio] PUT error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to update TravisMathew products", success: false },
+            { error: error.message || "Failed to update Ogio products", success: false },
             { status: 500 }
         );
     }
 }
 
 // ---------------------------------------------------------------------------
-// DELETE  /api/admin/products/travismethew
+// DELETE  /api/admin/products/ogio
 // Body: string[]  (array of skus)  or  { sku: string }
 // ---------------------------------------------------------------------------
 export async function DELETE(request: Request) {
@@ -284,7 +271,7 @@ export async function DELETE(request: Request) {
         }
 
         await dbConnect();
-        const collection = mongoose.connection.db!.collection("product_travis");
+        const collection = mongoose.connection.db!.collection("product_ogio");
         const body = await request.json();
 
         let skus: string[] = [];
@@ -308,9 +295,9 @@ export async function DELETE(request: Request) {
             success: result.deletedCount > 0,
         });
     } catch (error: any) {
-        console.error("[travismethew] DELETE error:", error);
+        console.error("[ogio] DELETE error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to delete TravisMathew products", success: false },
+            { error: error.message || "Failed to delete Ogio products", success: false },
             { status: 500 }
         );
     }
