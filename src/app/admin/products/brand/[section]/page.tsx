@@ -21,8 +21,7 @@ export default async function ProductSectionPage({
   }
 
   const rawCatalog = await loadRawBrandCatalogRecords(section.slug);
-  console.log("section.slug----->", section.slug);
-  console.log("rawCatalog----->", rawCatalog?.products.length);
+
   if (rawCatalog?.products.length) {
     if (section.slug === "ogio") {
       return (
@@ -65,24 +64,24 @@ export default async function ProductSectionPage({
     }
   }
 
-  const {catalog} = await loadCatalogRecords();
-  const products = catalog.filter((product) => section.brandCodes.includes(product?.brand?.code ?? ""));
-   console.log("products", products.length);
-  if (section.slug === "ogio") {
-    return <OgioCatalogWorkspace products={products}/>;
-  }
+  // const {catalog} = await loadCatalogRecords();
+  // const products = catalog.filter((product) => section.brandCodes.includes(product?.brand?.code ?? ""));
+  //  console.log("products", products.length);
+  // if (section.slug === "ogio") {
+  //   return <OgioCatalogWorkspace products={products}/>;
+  // }
 
-  if (section.slug === "callaway-hardgoods") {
-    return <HardgoodCatalogWorkspace products={products}/>;
-  }
+  // if (section.slug === "callaway-hardgoods") {
+  //   return <HardgoodCatalogWorkspace products={products}/>;
+  // }
 
-  if (section.slug === "callaway-softgoods") {
-    return <SoftgoodCatalogWorkspace products={products}/>;
-  }
+  // if (section.slug === "callaway-softgoods") {
+  //   return <SoftgoodCatalogWorkspace products={products}/>;
+  // }
 
-  if (section.slug === "travis-mathew") {
-    return <TravisCatalogWorkspace products={products}/>;
-  }
+  // if (section.slug === "travis-mathew") {
+  //   return <TravisCatalogWorkspace products={products}/>;
+  // }
 
-  notFound();
+  // notFound();
 }

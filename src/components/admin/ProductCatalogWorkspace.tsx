@@ -7,10 +7,14 @@ import {motion} from "framer-motion";
 import {
   ArrowDownUp,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
+  FileSpreadsheet,
+  FileText,
   Package2,
+  Presentation,
   RefreshCcw,
   Search,
   SlidersHorizontal,
@@ -23,6 +27,11 @@ import { ProductCatalogWorkspaceProps } from "../products/ProductType";
 import { buildExportRows, downloadCsv } from "../products/utils/ProductExcel";
 import UpdateBrandAttribute from "../products/UpdateBrandAttribute";
 import ImportFile from "../products/importFile/ImportFile";
+import { CatalogHeader } from "./CatalogHeader";
+import { CatalogTable } from "./CatalogTable";
+import { ProductExportActions } from "./ProductExportActions";
+import UpdateCurrentBrand from "../brands/UpdateCurrentBrand";
+
 
 
 const SORT_OPTIONS = [
@@ -73,16 +82,19 @@ export function ProductCatalogWorkspace({
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sortBy, setSortBy] = useState<(typeof SORT_OPTIONS)[number]["value"]>("latest");
+  const [viewMode, setViewMode] = useState<"product" | "sku">("product");
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState("");
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [brandFilters, setBrandFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [attributeFilters, setAttributeFilters] = useState<Record<string, string[]>>({});
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+
 
   const brandOptions = Array.from(
     products.reduce((set, product) => set.add(product.brand.code), new Set<string>())
@@ -191,10 +203,28 @@ export function ProductCatalogWorkspace({
   const pageCount = Math.max(1, Math.ceil(sortedProducts.length / pageSize));
   const currentPage = Math.min(page, pageCount);
   const pageStart = (currentPage - 1) * pageSize;
-  const visibleProducts = sortedProducts.slice(pageStart, pageStart + pageSize);
-  const selectedVisibleCount = visibleProducts.filter((product) => selectedIds.includes(product.id)).length;
-  const allVisibleSelected = visibleProducts.length > 0 && selectedVisibleCount === visibleProducts.length;
-  const selectedProducts = sortedProducts.filter((product) => selectedIds.includes(product.id));
+
+  // SKU View flattening logic
+  const normalizedRows = viewMode === "sku" 
+    ? sortedProducts.flatMap(p => p.variants.map(v => ({
+        ...p,
+        sku: v.sku,
+        variantTitle: v.title,
+        variantStock: v.availableStock,
+        variantId: v.id,
+        // Create a unique key for selection/rendering that is specific to the SKU
+        rowKey: `${p.id}-${v.sku}`
+      })))
+    : sortedProducts.map(p => ({ ...p, rowKey: p.id }));
+
+  const finalPageCount = Math.max(1, Math.ceil(normalizedRows.length / pageSize));
+  const finalCurrentPage = Math.min(page, finalPageCount);
+  const finalPageStart = (finalCurrentPage - 1) * pageSize;
+  const visibleRows = normalizedRows.slice(finalPageStart, finalPageStart + pageSize);
+
+  const selectedVisibleCount = visibleRows.filter((row) => selectedIds.includes(row.rowKey)).length;
+  const allVisibleSelected = visibleRows.length > 0 && selectedVisibleCount === visibleRows.length;
+  const selectedProducts = normalizedRows.filter((row) => selectedIds.includes(row.rowKey));
   const activeFilterCount =
     brandFilters.length +
     statusFilters.length +
@@ -204,10 +234,10 @@ export function ProductCatalogWorkspace({
     (availableOnly ? 1 : 0);
 
   useEffect(() => {
-    if (page > pageCount) {
-      setPage(pageCount);
+    if (page > finalPageCount) {
+      setPage(finalPageCount);
     }
-  }, [page, pageCount]);
+  }, [page, finalPageCount]);
 
   useEffect(() => {
     setPage(1);
@@ -221,6 +251,7 @@ export function ProductCatalogWorkspace({
     typeFilters,
     categoryFilters,
     attributeFilters,
+    viewMode,
   ]);
 
   const appliedFilters = [
@@ -289,7 +320,7 @@ export function ProductCatalogWorkspace({
         throw new Error("Failed to delete product");
       }
 
-      setSelectedIds((current) => current.filter((id) => id !== productId));
+      setSelectedIds((current) => current.filter((id) => id !== productId && !id.startsWith(`${productId}-`)));
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -310,11 +341,11 @@ export function ProductCatalogWorkspace({
   }
 
   function exportVisible() {
-    downloadCsv("products-visible.csv", buildExportRows(sortedProducts));
+    downloadCsv("products-visible.csv", buildExportRows(viewMode === "sku" ? (visibleRows as any) : sortedProducts));
   }
 
   function exportSelected() {
-    downloadCsv("products-selected.csv", buildExportRows(selectedProducts));
+    downloadCsv("products-selected.csv", buildExportRows(selectedProducts as any));
   }
 
   const [isOpen,setIsOpen] = useState(false);
@@ -325,448 +356,89 @@ export function ProductCatalogWorkspace({
     }
 
     setIsOpen(true);
-   }
+  }
+
   return (
     <>
-    {!isSourceReadonly ? (
-      <>
-        <GetAllAtributeSet/>
-        <GetAllBrands/>
-        <UpdateBrandAttribute/>
-      </>
-    ) : null}
+      {!isSourceReadonly ? (
+        <>
+          <GetAllAtributeSet />
+          <GetAllBrands />
+          <UpdateBrandAttribute />
+         
+        </>
+      ) : null}
 
-    <div className="space-y-4">
-      <section className="premium-card overflow-hidden rounded-[28px]">
-        <div className="grid gap-3 border-b border-border/60 px-4 py-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/42">
-              {badgeLabel}
-            </p>
-            <div className="flex flex-wrap items-end gap-3">
-              <h2 className="text-[1.85rem] font-semibold tracking-tight text-foreground">
-                {title}
-              </h2>
-              <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-foreground/55">
-                {products.length} total
-              </span>
-            </div>
-            <p className="max-w-4xl text-sm text-foreground/62">{description}</p>
-          </div>
+      <div className="space-y-4">
+       <UpdateCurrentBrand/>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {isSourceReadonly ? (
-              <Link
-                href={importHref}
-                className="rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground/76"
-              >
-                {importLabel}
-              </Link>
-            ) : (
-              <button
-                onClick={handleImport}
-                className="rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground/76"
-              >
-                Import file
-              </button>
-            )}
-            <button
-              onClick={exportVisible}
-              className="rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground/76"
-            >
-              Export visible
-            </button>
-            {newProductHref ? (
-              <Link
-                href={newProductHref}
-                className="rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(47,127,244,0.22)]"
-              >
-                {newProductLabel}
-              </Link>
-            ) : null}
-          </div>
-        </div>
+        <CatalogHeader
+          badgeLabel={badgeLabel}
+          title={title}
+          totalCount={products.length}
+          description={description}
+          isSourceReadonly={isSourceReadonly}
+          importHref={importHref}
+          importLabel={importLabel}
+          handleImport={handleImport}
+          exportVisible={exportVisible}
+          newProductHref={newProductHref}
+          newProductLabel={newProductLabel}
+          sourceNotice={sourceNotice}
+          query={query}
+          setQuery={setQuery}
+          filterPanelOpen={filterPanelOpen}
+          setFilterPanelOpen={setFilterPanelOpen}
+          activeFilterCount={activeFilterCount}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+          visibleCount={normalizedRows.length}
+          availableStock={sortedProducts.reduce((sum, product) => sum + product.availableStock, 0)}
+          selectedIdsCount={selectedIds.length}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          brandOptions={brandOptions}
+          brandFilters={brandFilters}
+          setBrandFilters={setBrandFilters}
+          statusOptions={statusOptions}
+          statusFilters={statusFilters}
+          setStatusFilters={setStatusFilters}
+          productTypeOptions={productTypeOptions}
+          typeFilters={typeFilters}
+          setTypeFilters={setTypeFilters}
+          categoryOptions={categoryOptions}
+          categoryFilters={categoryFilters}
+          setCategoryFilters={setCategoryFilters}
+          attributeCatalog={attributeCatalog}
+          attributeFilters={attributeFilters}
+          setAttributeFilters={setAttributeFilters}
+          availableOnly={availableOnly}
+          setAvailableOnly={setAvailableOnly}
+          appliedFilters={appliedFilters}
+          clearAllFilters={clearAllFilters}
+        />
+    
+        <CatalogTable
+          visibleRows={visibleRows}
+          viewMode={viewMode}
+          selectedIds={selectedIds}
+          setSelectedIds={setSelectedIds}
+          allVisibleSelected={allVisibleSelected}
+          pageStart={finalPageStart}
+          pageSize={pageSize}
+          currentPage={finalCurrentPage}
+          pageCount={finalPageCount}
+          setPage={setPage}
+          isSourceReadonly={isSourceReadonly}
+          handleDelete={handleDelete}
+          deletingId={deletingId}
+          sortedProductsCount={normalizedRows.length}
+          statusClasses={statusClasses}
+        />
 
-        <div className="space-y-4 px-4 py-4">
-          {isSourceReadonly && sourceNotice ? (
-            <div className="rounded-[22px] border border-primary/20 bg-primary/8 px-4 py-4 text-sm text-foreground/72">
-              {sourceNotice}
-            </div>
-          ) : null}
-
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.3fr)_auto_auto_auto]">
-            <label className="premium-search flex items-center gap-3 rounded-[22px] px-4 py-3">
-              <Search className="h-4 w-4 text-foreground/45" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by product, base SKU, variant SKU, brand, category, or attribute value"
-                className="w-full border-none bg-transparent p-0 text-sm"
-              />
-            </label>
-
-            <button
-              onClick={() => setFilterPanelOpen((current) => !current)}
-              className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {activeFilterCount ? (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
-                  {activeFilterCount}
-                </span>
-              ) : null}
-            </button>
-
-            <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76">
-              <ArrowDownUp className="h-4 w-4 text-foreground/45" />
-              <select
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value as (typeof SORT_OPTIONS)[number]["value"])}
-                className="border-none bg-transparent p-0 pr-6 text-sm font-semibold"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76">
-              <ChevronsUpDown className="h-4 w-4 text-foreground/45" />
-              <select
-                value={pageSize}
-                onChange={(event) => setPageSize(Number(event.target.value))}
-                className="border-none bg-transparent p-0 pr-6 text-sm font-semibold"
-              >
-                {PAGE_SIZE_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value} / page
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-
-
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <SummaryTile label="Visible products" value={String(sortedProducts.length)} tone="neutral" />
-            <SummaryTile label="Available stock" value={String(sortedProducts.reduce((sum, product) => sum + product.availableStock, 0))} tone="primary" />
-            <SummaryTile label="Selected rows" value={String(selectedIds.length)} tone="neutral" />
-            <SummaryTile label="Active filters" value={String(activeFilterCount)} tone="neutral" />
-          </div>
-
-          {filterPanelOpen ? (
-            <motion.div
-              initial={{opacity: 0, y: -8}}
-              animate={{opacity: 1, y: 0}}
-              className="grid gap-4 rounded-[24px] border border-border/70 bg-background/75 p-4 xl:grid-cols-[repeat(4,minmax(0,1fr))]"
-            >
-              <FilterGroup
-                title="Brand"
-                values={brandOptions}
-                selectedValues={brandFilters}
-                onToggle={(value) => setBrandFilters((current) => toggleValue(current, value))}
-              />
-              <FilterGroup
-                title="Status"
-                values={statusOptions}
-                selectedValues={statusFilters}
-                onToggle={(value) => setStatusFilters((current) => toggleValue(current, value))}
-              />
-              <FilterGroup
-                title="Product type"
-                values={productTypeOptions}
-                selectedValues={typeFilters}
-                onToggle={(value) => setTypeFilters((current) => toggleValue(current, value))}
-              />
-              <FilterGroup
-                title="Category"
-                values={categoryOptions}
-                selectedValues={categoryFilters}
-                onToggle={(value) => setCategoryFilters((current) => toggleValue(current, value))}
-              />
-
-              <div className="xl:col-span-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">Attribute filters</h3>
-                    <p className="text-xs text-foreground/52">
-                      Filter products by specific attributes like size, color, or material.
-                    </p>
-                  </div>
-                  <label className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-[color:var(--surface)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground/64">
-                    <input
-                      type="checkbox"
-                      checked={availableOnly}
-                      onChange={(event) => setAvailableOnly(event.target.checked)}
-                      className="h-4 w-4 rounded border-border/80"
-                    />
-                    Available stock only
-                  </label>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {attributeCatalog.map((attribute) => (
-                    <FilterGroup
-                      key={attribute.key}
-                      title={attribute.label}
-                      values={attribute.values}
-                      selectedValues={attributeFilters[attribute.key] ?? []}
-                      onToggle={(value) =>
-                        setAttributeFilters((current) => ({
-                          ...current,
-                          [attribute.key]: toggleValue(current[attribute.key] ?? [], value),
-                        }))
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ) : null}
-
-          {appliedFilters.length ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {appliedFilters.map((filterItem) => (
-                <button
-                  key={filterItem.key}
-                  onClick={filterItem.onRemove}
-                  className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs font-semibold text-foreground/72"
-                >
-                  {filterItem.label}
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              ))}
-              <button
-                onClick={clearAllFilters}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
-              >
-                <RefreshCcw className="h-3.5 w-3.5" />
-                Clear all
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="premium-card overflow-clip rounded-[28px]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Product List</h3>
-            <p className="text-sm text-foreground/56">
-              Select products to perform bulk actions or export data.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-foreground/48">
-            <span>
-              Showing {sortedProducts.length === 0 ? 0 : pageStart + 1}-{Math.min(pageStart + pageSize, sortedProducts.length)}
-            </span>
-            <span>of {sortedProducts.length}</span>
-          </div>
-        </div>
-
-        <div className="w-full max-h-[calc(100vh-250px)] overflow-auto rounded-b-[24px]">
-          <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
-            <thead>
-              <tr className="bg-[#111111] text-white">
-                <StickyHeading className="w-12 px-4 py-3">
-                  <input
-                    type="checkbox"
-                    aria-label="Select visible products"
-                    checked={allVisibleSelected}
-                    onChange={() => {
-                      if (allVisibleSelected) {
-                        setSelectedIds((current) =>
-                          current.filter((id) => !visibleProducts.some((product) => product.id === id))
-                        );
-                      } else {
-                        setSelectedIds((current) =>
-                          Array.from(new Set([...current, ...visibleProducts.map((product) => product.id)]))
-                        );
-                      }
-                    }}
-                    className="h-4 w-4 rounded border-white/20 bg-transparent"
-                  />
-                </StickyHeading>
-                <StickyHeading className="min-w-[320px] px-4 py-3">Product</StickyHeading>
-                <StickyHeading className="min-w-[150px] px-4 py-3">Brand</StickyHeading>
-                <StickyHeading className="min-w-[180px] px-4 py-3">Category</StickyHeading>
-                <StickyHeading className="min-w-[260px] px-4 py-3">Attributes</StickyHeading>
-                <StickyHeading className="min-w-[180px] px-4 py-3">Variants</StickyHeading>
-                <StickyHeading className="min-w-[140px] px-4 py-3">Stock</StickyHeading>
-                <StickyHeading className="min-w-[130px] px-4 py-3">Status</StickyHeading>
-                <StickyHeading className="min-w-[120px] px-4 py-3">Actions</StickyHeading>
-              </tr>
-            </thead>
-            <tbody className="bg-[color:var(--surface)]">
-              {visibleProducts.length ? (
-                visibleProducts.map((product) => {
-                  const isSelected = selectedIds.includes(product.id);
-
-                  return (
-                    <tr key={product.id} className="border-b border-border/60 transition-colors hover:bg-primary/5">
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <input
-                          type="checkbox"
-                          aria-label={`Select ${product.name}`}
-                          checked={isSelected}
-                          onChange={() =>
-                            setSelectedIds((current) =>
-                              current.includes(product.id)
-                                ? current.filter((id) => id !== product.id)
-                                : [...current, product.id]
-                            )
-                          }
-                          className="mt-1 h-4 w-4 rounded border-border/80"
-                        />
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <div className="flex gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#111111] text-xs font-semibold uppercase tracking-[0.14em] text-white">
-                            {product.brand.code.slice(0, 2)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="truncate font-semibold text-foreground">{product.name}</p>
-                              <span className="rounded-full border border-border/70 bg-background px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/48">
-                                {product.baseSku}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs text-foreground/52">
-                              {product.subcategory || "No subcategory"} · {product.productType}
-                            </p>
-                            <p className="mt-2 line-clamp-1 text-xs text-foreground/45">
-                              {product.variantSkus.slice(0, 3).join(" · ")}
-                              {product.variantSkus.length > 3 ? ` +${product.variantSkus.length - 3} more` : ""}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-foreground">{product.brand.name}</p>
-                          <p className="text-xs text-foreground/52">{product.brand.code}</p>
-                        </div>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <p className="font-medium text-foreground">{product.category || "Uncategorized"}</p>
-                        <p className="mt-1 text-xs text-foreground/52">{product.subcategory || "No subcategory"}</p>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <div className="flex flex-wrap gap-2">
-                          {product.attributeGroups.length ? (
-                            product.attributeGroups.slice(0, 3).map((group) => (
-                              <span
-                                key={group.key}
-                                className="rounded-2xl border border-border/70 bg-background px-2.5 py-1.5 text-xs text-foreground/66"
-                              >
-                                <span className="font-semibold text-foreground/74">{group.label}:</span>{" "}
-                                {group.values.slice(0, 2).join(", ")}
-                                {group.values.length > 2 ? ` +${group.values.length - 2}` : ""}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-foreground/45">No variant attributes</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <p className="font-semibold text-foreground">{product.variantCount}</p>
-                        <p className="mt-1 text-xs text-foreground/52">
-                          {product.variants.slice(0, 2).map((variant) => variant.title).join(" · ")}
-                          {product.variants.length > 2 ? ` +${product.variants.length - 2} more` : ""}
-                        </p>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-foreground">{product.availableStock}</p>
-                          <p className="text-xs text-foreground/52">
-                            {product.availableStock > 0 ? "Available" : "Awaiting stock"}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${statusClasses(product.status)}`}>
-                          {product.status}
-                        </span>
-                      </td>
-                      <td className="border-b border-border/60 px-4 py-4 align-top">
-                        {isSourceReadonly ? (
-                          <div className="space-y-1">
-                            <p className="text-sm font-semibold text-foreground/72">Source-managed</p>
-                            <p className="text-xs text-foreground/48">Use the import workflow for catalog and stock updates.</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-start gap-2">
-                            <Link
-                              href={`/admin/products/${product.id}/edit`}
-                              className="text-sm font-semibold text-primary"
-                            >
-                              Edit
-                            </Link>
-                            <button
-                              onClick={() => handleDelete(product.id)}
-                              disabled={deletingId === product.id}
-                              className="inline-flex items-center gap-2 text-sm font-semibold text-danger disabled:opacity-60"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              {deletingId === product.id ? "Deleting..." : "Delete"}
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={9} className="px-6 py-14 text-center">
-                    <div className="mx-auto flex max-w-md flex-col items-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-[#111111] text-white">
-                        <Package2 className="h-5 w-5" />
-                      </div>
-                      <h3 className="mt-4 text-base font-semibold text-foreground">No products found</h3>
-                      <p className="mt-2 text-sm text-foreground/56">
-                        Try adjusting your search terms or clearing active filters.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
-          <div className="text-sm text-foreground/56">
-            Page {currentPage} of {pageCount}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={currentPage === 1}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background text-foreground/70 disabled:opacity-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <div className="rounded-2xl border border-border/70 bg-background px-4 py-2 text-sm font-semibold text-foreground/76">
-              {currentPage}
-            </div>
-            <button
-              onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
-              disabled={currentPage === pageCount}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background text-foreground/70 disabled:opacity-50"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {selectedIds.length ? (
+        {selectedIds.length ? (
         <motion.div
           initial={{opacity: 0, y: 16}}
           animate={{opacity: 1, y: 0}}
@@ -781,12 +453,13 @@ export function ProductCatalogWorkspace({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={exportSelected}
-              className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              Export selected
-            </button>
+            <ProductExportActions
+              selectedProducts={selectedProducts}
+              selectedIds={selectedIds}
+              setSelectedIds={setSelectedIds}
+              viewMode={viewMode}
+              brandName={selectedProducts.length > 0 && selectedProducts.every(p => p.brand.name === "Travis Mathew") ? "Travis Mathew" : undefined}
+            />
             <button
               onClick={() => setSelectedIds([])}
               className="rounded-2xl border border-white/10 bg-transparent px-4 py-2.5 text-sm font-semibold text-white/70"
@@ -804,95 +477,3 @@ export function ProductCatalogWorkspace({
     </>
   );
 }
-
-function SummaryTile({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "neutral" | "primary";
-}) {
-  return (
-    <div
-      className={`rounded-[22px] border px-4 py-4 ${
-        tone === "primary"
-          ? "border-primary/20 bg-primary/10"
-          : "border-border/70 bg-background/75"
-      }`}
-    >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/45">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
-    </div>
-  );
-}
-
-function FilterGroup({
-  title,
-  values,
-  selectedValues,
-  onToggle,
-}: {
-  title: string;
-  values: string[];
-  selectedValues: string[];
-  onToggle: (value: string) => void;
-}) {
-  if (!values.length) {
-    return null;
-  }
-
-  return (
-    <div className="rounded-[22px] border border-border/70 bg-[color:var(--surface)] p-3">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
-        {title}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {values.map((value) => {
-          const selected = selectedValues.includes(value);
-
-          return (
-            <button
-              key={value}
-              onClick={() => onToggle(value)}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                selected
-                  ? "border-primary/20 bg-primary/10 text-primary"
-                  : "border-border/70 bg-background text-foreground/66 hover:text-foreground"
-              }`}
-            >
-              {selected ? <Check className="h-3.5 w-3.5" /> : null}
-              {value}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function StickyHeading({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <th
-      className={`bg-[#111] text-white shadow-[0_1px_0_rgba(255,255,255,0.08)] ${className || ""}`}
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-      }}
-    >
-      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/82">
-        {children}
-      </div>
-    </th>
-  );
-} 
