@@ -186,6 +186,13 @@ export function ProductCatalogWorkspace({
   });
 
   const sortedProducts = [...filteredProducts].sort((left, right) => {
+    // 1. Primary sort: Presence of primary_url (images first)
+    const leftHasImage = !!(left.primary_url && left.primary_url.length > 0);
+    const rightHasImage = !!(right.primary_url && right.primary_url.length > 0);
+    if (leftHasImage && !rightHasImage) return -1;
+    if (!leftHasImage && rightHasImage) return 1;
+
+    // 2. Secondary sort: Selected sortBy logic
     switch (sortBy) {
       case "name-asc":
         return left.name.localeCompare(right.name);

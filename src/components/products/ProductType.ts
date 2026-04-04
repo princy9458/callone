@@ -34,6 +34,7 @@ export type ProductCatalogRecord = {
   variants: ProductVariantPreview[];
   attributeGroups: ProductAttributeGroup[];
   updatedAt: string;
+  primary_url?: string;
 };
 
 export type ProductCatalogWorkspaceProps = {

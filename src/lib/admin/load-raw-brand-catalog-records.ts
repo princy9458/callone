@@ -295,7 +295,15 @@ async function loadCollectionRecords(config: RawCatalogConfig): Promise<ProductC
       })),
       attributeGroups: [...variantGroups, ...extraGroups],
       updatedAt: selectUpdatedAt(group),
+      primary_url: (group[0]?.primary_url || group[0]?.primary_image_url) as string,
+      sku: (group[0]?.sku) as string,
     };
+  }).sort((a, b) => {
+    const aHasImage = a.primary_url && a.primary_url.length > 0;
+    const bHasImage = b.primary_url && b.primary_url.length > 0;
+    if (aHasImage && !bHasImage) return -1;
+    if (!aHasImage && bHasImage) return 1;
+    return 0;
   });
 }
 

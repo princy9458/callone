@@ -91,7 +91,7 @@ export async function GET(request: Request) {
         const skip  = (page - 1) * limit;
 
         const [products, total] = await Promise.all([
-            collection.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+            collection.find(query).sort({ primary_image_url: -1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
             collection.countDocuments(query),
         ]);
 

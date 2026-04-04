@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Package2, Trash2 } from "lucide-react";
-import type { ProductCatalogRecord } from "../products/ProductType";
+import { ProductImage } from "./ProductImage";
 
 interface ProductTableProps {
   visibleRows: any[];
@@ -84,9 +84,12 @@ export function ProductTable({
                 </td>
                 <td className="border-b border-border/60 px-4 py-4 align-top">
                   <div className="flex gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#111111] text-xs font-semibold uppercase tracking-[0.14em] text-white">
-                      {row.brand.code.slice(0, 2)}
-                    </div>
+                    <ProductImage 
+                      brandName={row.brand.name}
+                      rowData={row}
+                      alt={row.name} 
+                      className="h-11 w-11 shrink-0" 
+                    />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate font-semibold text-foreground">{row.name}</p>

@@ -19,27 +19,33 @@ export function ProductImage({ brandName, rowData,  alt = "Product Image", class
   const [family, setFamily] = useState<string>();
   const s3_url = `https://callaways3bucketcc001-prod.s3.ap-south-1.amazonaws.com/public/productimg/TRAVIS-Images`;
   const s3_url_ogio = `https://callaways3bucketcc001-prod.s3.ap-south-1.amazonaws.com/public/productimg/OGIO-Images`;
-  useEffect(() => {
-    if (brandName === "Travis Mathew" && rowData?.primary_image_url && rowData?.sku) {
-      const skuValue = rowData?.sku;
-      if (typeof skuValue === "string") {
-        const fam = skuValue.replace(/_[^_]*$/, '');
-        console.log("fam ---->", fam);
-        const path = `${s3_url}/${fam}/${rowData?.primary_image_url}`;
-        console.log("path ---->", path);
-        setPrimaryImage(path);
-      }
-    }
-    if (brandName === "Ogio" && rowData?.primary_image_url && rowData?.sku) {
-      const skuValue = rowData?.sku;
-      if (typeof skuValue === "string") {
   
-        const path = `${s3_url_ogio}/${skuValue}/${rowData?.primary_image_url}`;
-        console.log("path ---->", path);
-        setPrimaryImage(path);
-      }
+  console.log("rowData-- pperpe",rowData)
+  useEffect(() => {
+    // Get the raw image source and filename
+    const rawUrl = rowData?.primary_url || rowData?.primary_image_url;
+    const skuValue = rowData?.sku || rowData?.baseSku;
+
+    if (!rawUrl) return;
+
+    // 1. If it's already an absolute URL or starts with /, use it directly
+    if (typeof rawUrl === "string" && (rawUrl.startsWith('http') || rawUrl.startsWith('/'))) {
+      setPrimaryImage(rawUrl);
+      return;
     }
-  }, [brandName, rowData, s3_url]);
+
+    // 2. Otherwise treatment as a filename and construct S3 URL based on brand
+    if (brandName === "Travis Mathew" && typeof skuValue === "string") {
+      const fam = skuValue.replace(/_[^_]*$/, '');
+      const path = `${s3_url}/${fam}/${rawUrl}`;
+      setPrimaryImage(path);
+    } else if (brandName === "Ogio" && typeof skuValue === "string") {
+      const path = `${s3_url_ogio}/${skuValue}/${rawUrl}`;
+      setPrimaryImage(path);
+    } else {
+      setPrimaryImage(rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`);
+    }
+  }, [brandName, rowData, s3_url, s3_url_ogio]);
 
   const displaySrc = primaryImage 
 
