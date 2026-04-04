@@ -11,6 +11,7 @@ export const fetchOgio = createAsyncThunk<OgioType[], void, { rejectValue: strin
       const response = await fetch(`${API_URL}?limit=5000`);
       if (!response.ok) throw new Error('Failed to fetch Ogio products');
       const data = await response.json();
+      // console.log("data ogio data", data.data);
       return data.data as OgioType[];
     } catch (error: any) {
       return rejectWithValue(error.message || 'An error occurred while fetching Ogio products');

@@ -17,6 +17,7 @@ export type ProductCatalogRecord = {
   name: string;
   slug: string;
   baseSku: string;
+  sku?:string
   brand: {
     id: string;
     name: string;

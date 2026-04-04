@@ -199,8 +199,8 @@ export function AdminShell({children, user}: AdminShellProps) {
         ) : null}
       </AnimatePresence>
 
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#111] text-white backdrop-blur-xl">
-        <div className="mx-auto flex h-[74px] max-w-[1600px] items-center gap-3 px-4 sm:px-5">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#111] text-white backdrop-blur-xl px-10">
+        <div className="mx-auto flex h-[74px] items-center gap-3 px-4 sm:px-5 ">
           <div className="flex items-center gap-3">
             <button
               className="rounded-2xl border border-white/12 bg-white/6 p-2.5 text-white/72 transition hover:text-white md:hidden"
@@ -709,7 +709,7 @@ export function AdminShell({children, user}: AdminShellProps) {
             initial={{opacity: 0, y: 10}}
             animate={{opacity: 1, y: 0}}
             transition={{duration: 0.35, ease: "easeOut"}}
-            className={clsx("mx-auto", shellWidthClass)}
+            className={clsx("mx-auto")}
           >
 
             {children}
