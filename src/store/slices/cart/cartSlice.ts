@@ -52,23 +52,18 @@ const cartSlice = createSlice({
     setSelectedSalesRep(state, action: PayloadAction<UserInterface | null>) {
       state.selectedSalesRep = action.payload;
     },
-    addToCart(state, action: PayloadAction<CartItem[]>) {
-      action.payload.forEach((newItem) => {
+    addToCart(state, action: PayloadAction<CartItem | CartItem[]>) {
+      const payloads = Array.isArray(action.payload) ? action.payload : [action.payload];
+      
+      payloads.forEach((newItem) => {
         const existingItemIndex = state.items.findIndex(
-          (item) => item.id === newItem.id
+          (item) => item.sku === newItem.sku
         );
 
         if (existingItemIndex !== -1) {
-          const existingItem = state.items[existingItemIndex];
           state.items[existingItemIndex] = {
-            ...existingItem,
+            ...state.items[existingItemIndex],
             ...newItem,
-            qty88: (existingItem.qty88 || 0) + (newItem.qty88 || 0),
-            qty90: (existingItem.qty90 || 0) + (newItem.qty90 || 0),
-            qty: (existingItem.qty || 0) + (newItem.qty || 0),
-            amount: (existingItem.amount || 0) + (newItem.amount || 0),
-            finalAmount: (existingItem.finalAmount || 0) + (newItem.finalAmount || 0),
-            netBilling: (existingItem.netBilling || 0) + (newItem.netBilling || 0),
           };
         } else {
           state.items.push(newItem);

@@ -33,6 +33,8 @@ import {useTheme} from "../ThemeProvider";
 import {MegaSearch} from "../ui/MegaSearch";
 import GetAllProducts from "../products/GetAllProducts";
 import { buildHeroSlides, getInitials, getSectionItems, matchesPath } from "./util/UtilFunction";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 type AdminShellProps = {
   children: React.ReactNode;
@@ -69,6 +71,8 @@ export function AdminShell({children, user}: AdminShellProps) {
   const navMenuRef = useRef<HTMLDivElement | null>(null);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const allowedViewRoles = useMemo(() => getAvailableViewRoles(user.role), [user.role]);
+
+   const {items}=useSelector((state:RootState)=>state.cart)
 
   const visibleNavItems = useMemo(
     () => ADMIN_NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(viewRole)),
@@ -429,10 +433,15 @@ export function AdminShell({children, user}: AdminShellProps) {
 
             <Link
               href="/admin/cart"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/70 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/70 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
               aria-label="Open cart"
             >
               <ShoppingCart size={17} />
+              {items.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {items.length}
+                </span>
+              )}
             </Link>
 
             <motion.button
@@ -588,9 +597,14 @@ export function AdminShell({children, user}: AdminShellProps) {
               <Link
                 href="/admin/cart"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/72"
+                className="relative flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/72"
               >
                 <ShoppingCart size={17} />
+                {items.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {items.length}
+                  </span>
+                )}
               </Link>
               <button
                 onClick={toggleTheme}

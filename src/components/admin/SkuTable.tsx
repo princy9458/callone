@@ -42,6 +42,7 @@ export function SkuTable({
   const { ogio } = useSelector((state: RootState) => state.ogio);
   const { hardgoods } = useSelector((state: RootState) => state.hardgoods);
   const {currentAttribute,allAttribute} = useSelector((state: RootState) => state.attribute);
+  const { items } = useSelector((state: RootState) => state.cart);
   const dispatch = useDispatch<AppDispatch>()
 
   const [selectedData, setSelectedData] = useState<CartItem[]>([])
@@ -212,24 +213,26 @@ export function SkuTable({
                       return (
                         <td key={key} className="border-b border-border/60 px-4 py-4 align-top">
                           <SkuQuantityInput
-                            value={skuQuantities[rowId]?.qty88 || 0}
+                            row={row}
+                            qty={"qty88"}
+                            value={items.find(item => item.sku === row.sku)?.qty88 || 0}
                             maxStock={Number(row.stock_88) || 0}
-                            onChange={(val) => {
-                              setSkuQuantities(prev => ({
-                                ...prev,
-                                [rowId]: { 
-                                  ...prev[rowId], 
-                                  qty88: val,
-                                  // Ensure other fields are initialized if this is the first update
-                                  primaryImage: row?.primary_image_url??"",
-                                  sku: row.sku || row.baseSku,
-                                  description: row.description,
-                                  amount: Number(row.amount) || 0,
-                                  gst: Number(row.gst) || 0,
-                                  mrp: Number(row.mrp) || 0,
-                                }
-                              }));
-                            }}
+                            // onChange={(val) => {
+                            //   setSkuQuantities(prev => ({
+                            //     ...prev,
+                            //     [rowId]: { 
+                            //       ...prev[rowId], 
+                            //       qty88: val,
+                            //       // Ensure other fields are initialized if this is the first update
+                            //       primaryImage: row?.primary_image_url??"",
+                            //       sku: row.sku || row.baseSku,
+                            //       description: row.description,
+                            //       amount: Number(row.amount) || 0,
+                            //       gst: Number(row.gst) || 0,
+                            //       mrp: Number(row.mrp) || 0,
+                            //     }
+                            //   }));
+                            // }}
                           />
                         </td>
                       );
@@ -239,22 +242,24 @@ export function SkuTable({
                       return (
                         <td key={key} className="border-b border-border/60 px-4 py-4 align-top">
                           <SkuQuantityInput
-                            value={skuQuantities[rowId]?.qty90 || 0}
+                            row={row}
+                            qty={"qty90"}
+                            value={items.find(item => item.sku === row.sku)?.qty90 || 0}
                             maxStock={Number(row.stock_90) || 0}
-                            onChange={(val) => {
-                              setSkuQuantities(prev => ({
-                                ...prev,
-                                [rowId]: { 
-                                  ...prev[rowId], 
-                                  qty90: val,
-                                  // Ensure other fields are initialized if this is the first update
-                                  id: rowId,
-                                  sku: row.sku || row.baseSku,
-                                  mrp: Number(row.mrp) || 0,
-                                }
-                              }));
-                            }
-                          }
+                          //   onChange={(val) => {
+                          //     setSkuQuantities(prev => ({
+                          //       ...prev,
+                          //       [rowId]: { 
+                          //         ...prev[rowId], 
+                          //         qty90: val,
+                          //         // Ensure other fields are initialized if this is the first update
+                          //         id: rowId,
+                          //         sku: row.sku || row.baseSku,
+                          //         mrp: Number(row.mrp) || 0,
+                          //       }
+                          //     }));
+                          //   }
+                          // }
                           />
                         </td>
                       );
