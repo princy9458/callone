@@ -57,7 +57,7 @@ export function ProductImage({ brandName, rowData, alt = "Product Image", classN
 
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden rounded-2xl bg-[#1D1D1D] transition-all hover:ring-2 hover:ring-primary/50 ${className}`}
+      className={`group relative cursor-pointer overflow-hidden rounded-2xl  bg-[#1D1D1D] transition-all hover:ring-2 hover:ring-primary/50  rounded-none ${className}`}
       onClick={(e) => {
         if (onClick) {
           e.stopPropagation();

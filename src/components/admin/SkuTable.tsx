@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { Package2, Trash2 } from "lucide-react";
+import { Package2, Pencil, Trash2 } from "lucide-react";
 import { setCurrentAttribute } from "@/store/slices/attributeSlice/attributeSlice";
 import { ProductImage } from "./ProductImage";
 import { SkuQuantityInput } from "./SkuQuantityInput";
@@ -378,21 +378,41 @@ export function SkuTable({
                 )}
                 <td className="border-b border-border/60 px-4 py-4 align-top">
                
-                    <div className="flex flex-col items-start gap-2">
-                      <Link
-                        href={`/admin/products/${rowId}/edit`}
-                        className="text-sm font-semibold text-primary"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(rowId)}
-                        disabled={deletingId === rowId}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-danger disabled:opacity-60"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {deletingId === rowId ? "Deleting..." : "Delete"}
-                      </button>
+                    <div className="flex items-center gap-1.5">
+                      {/* Edit Action */}
+                      <div className="group relative">
+                        <Link
+                          href={`/admin/products/${rowId}/edit`}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/10 bg-primary/4 text-primary transition-all hover:bg-primary hover:text-white"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/80 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white opacity-0 transition-all group-hover:opacity-100">
+                          Edit Product
+                          <div className="absolute top-full left-1/2 h-1 w-1 -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-black/80" />
+                        </div>
+                      </div>
+
+                      {/* Delete Action */}
+                      <div className="group relative">
+                        <button
+                          onClick={() => handleDelete(rowId)}
+                          disabled={deletingId === rowId}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-danger/10 bg-danger/4 text-danger transition-all hover:bg-danger hover:text-white disabled:opacity-50 disabled:hover:bg-danger/4 disabled:hover:text-danger"
+                        >
+                          {deletingId === rowId ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white opacity-0 transition-all group-hover:opacity-100">
+                          {deletingId === rowId ? "Deleting..." : "Delete Product"}
+                          <div className="absolute top-full left-1/2 h-1 w-1 -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-red-600" />
+                        </div>
+                      </div>
                     </div>
                  
                 </td>

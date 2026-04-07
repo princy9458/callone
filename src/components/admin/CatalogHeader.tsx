@@ -123,7 +123,7 @@ export function CatalogHeader({
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-foreground/42">
             {badgeLabel}
           </p>
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-center gap-3 ">
             <h2 className="text-[1.85rem] font-semibold tracking-tight text-foreground">
               {title}
             </h2>
@@ -203,7 +203,7 @@ export function CatalogHeader({
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
-              className="border-none bg-transparent p-0 pr-6 text-sm font-semibold"
+              className="border-none bg-transparent p-0 pr-6 text-sm font-semibold "
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
