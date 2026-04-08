@@ -38,6 +38,7 @@ export const calculateValues = (item: CartItem, value: number, mode: string) => 
   // 🔹 Flat
   if (mode === "flat") {
     LessGST = 0;
+    discount = 0;
     LessDiscountAmount = parseFloat(((salP * discount) / 100).toFixed(2));
     NetBillings = parseFloat((salP - LessDiscountAmount).toFixed(2));
     FinalBillValue = parseFloat(NetBillings.toFixed(2));
@@ -45,10 +46,10 @@ export const calculateValues = (item: CartItem, value: number, mode: string) => 
 
   return {
     ...item,
-    lessDiscount: discount,
+    discount:discount,
+    lessDiscount: LessDiscountAmount,
     lessGST:LessGST,
-    lessDiscountAmount:LessDiscountAmount,
-    netBillings:NetBillings,
-    finalBillValue:FinalBillValue,
+    netBilling:NetBillings,
+    finalAmount:FinalBillValue,
   };
 };

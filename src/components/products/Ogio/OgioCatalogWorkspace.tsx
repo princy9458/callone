@@ -6,12 +6,16 @@ type OgioCatalogWorkspaceProps = {
   products: ProductCatalogRecord[];
   mode?: "managed" | "source_readonly";
   sourceCollectionName?: string;
+  isLoading?: boolean;
+  initialViewMode?: "product" | "sku";
 };
 
 export function OgioCatalogWorkspace({
   products,
   mode = "managed",
   sourceCollectionName = "",
+  isLoading = false,
+  initialViewMode = "sku",
 }: OgioCatalogWorkspaceProps) {
   return (
     <ProductCatalogWorkspace
@@ -28,6 +32,8 @@ export function OgioCatalogWorkspace({
           ? `This catalog is currently sourced from ${sourceCollectionName || "the raw Ogio collection"}. Use Imports for catalog and inventory refreshes, and keep image uploads on a separate lane.`
           : ""
       }
+      isLoading={isLoading}
+      initialViewMode={initialViewMode}
     />
   );
 }

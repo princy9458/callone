@@ -62,6 +62,8 @@ export function ProductCatalogWorkspace({
   newProductHref = "/admin/products/new",
   newProductLabel = "New product",
   sourceNotice = "",
+  isLoading = false,
+  initialViewMode = "sku",
 }: ProductCatalogWorkspaceProps) {
   const router = useRouter();
   const isSourceReadonly = workspaceMode === "source_readonly";
@@ -69,7 +71,7 @@ export function ProductCatalogWorkspace({
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sortBy, setSortBy] = useState<(typeof SORT_OPTIONS)[number]["value"]>("latest");
-  const [viewMode, setViewMode] = useState<"product" | "sku">("sku");
+  const [viewMode, setViewMode] = useState<"product" | "sku">(initialViewMode);
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -99,6 +101,7 @@ export function ProductCatalogWorkspace({
     }
 
     const itemsJson = JSON.stringify(cart.items);
+    console.log("item json---->",itemsJson)
     
     // Skip if items haven't changed since last sync
     if (itemsJson === lastSyncedItemsRef.current) {
@@ -122,7 +125,7 @@ export function ProductCatalogWorkspace({
         discount_percent: cart.discountValue,
         user_id: "",
         totalAmount: cart.items.reduce((acc, item) => acc + (item.finalAmount ?? 0), 0),
-        discountAmount: cart.items.reduce((acc, item) => acc + (item.discount ?? 0), 0),
+        discountAmount: cart.items.reduce((acc, item) => acc + (item.lessDiscount ?? 0), 0),
         status: "pending",
         note: [],
         created_at: currentOrder?.created_at || new Date().toISOString(),
@@ -574,26 +577,48 @@ export function ProductCatalogWorkspace({
           clearAllFilters={clearAllFilters}
         />
 
-        <CatalogTable
-          visibleRows={visibleRows}
-          viewMode={viewMode}
-          selectedIds={selectedIds}
-          setSelectedIds={setSelectedIds}
-          allVisibleSelected={allVisibleSelected}
-          pageStart={finalPageStart}
-          pageSize={pageSize}
-          currentPage={finalCurrentPage}
-          pageCount={finalPageCount}
-          setPage={setPage}
-          isSourceReadonly={isSourceReadonly}
-          handleDelete={handleDelete}
-          deletingId={deletingId}
-          sortedProductsCount={normalizedRows.length}
-          statusClasses={statusClasses}
-          skuQuantities={skuQuantities}
-          setSkuQuantities={setSkuQuantities}
-          onOpenPreview={handleOpenPreview}
-        />
+        <div className="relative">
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 flex items-center justify-center rounded-3xl border border-white/10 bg-black/20 backdrop-blur-[2px] transition-all"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative flex h-16 w-16 items-center justify-center">
+                  <div className="absolute inset-0 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+                  <div className="h-2 w-2 animate-ping rounded-full bg-primary"></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-sm font-bold uppercase tracking-widest text-white">Updating Catalog</span>
+                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">Synchronizing data...</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <CatalogTable
+            visibleRows={visibleRows}
+            viewMode={viewMode}
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+            allVisibleSelected={allVisibleSelected}
+            pageStart={finalPageStart}
+            pageSize={pageSize}
+            currentPage={finalCurrentPage}
+            pageCount={finalPageCount}
+            setPage={setPage}
+            isSourceReadonly={isSourceReadonly}
+            handleDelete={handleDelete}
+            deletingId={deletingId}
+            sortedProductsCount={normalizedRows.length}
+            statusClasses={statusClasses}
+            skuQuantities={skuQuantities}
+            setSkuQuantities={setSkuQuantities}
+            onOpenPreview={handleOpenPreview}
+          />
+        </div>
 
         {selectedIds.length ? (
           <motion.div

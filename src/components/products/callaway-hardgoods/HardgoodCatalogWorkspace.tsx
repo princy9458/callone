@@ -6,12 +6,16 @@ type HardgoodCatalogWorkspaceProps = {
   products: ProductCatalogRecord[];
   mode?: "managed" | "source_readonly";
   sourceCollectionName?: string;
+  isLoading?: boolean;
+  initialViewMode?: "product" | "sku";
 };
 
 export function HardgoodCatalogWorkspace({
   products,
   mode = "managed",
   sourceCollectionName = "",
+  isLoading = false,
+  initialViewMode = "sku",
 }: HardgoodCatalogWorkspaceProps) {
   return (
     <ProductCatalogWorkspace
@@ -28,6 +32,8 @@ export function HardgoodCatalogWorkspace({
           ? `This catalog is currently sourced from ${sourceCollectionName || "the raw hardgoods collection"}. Use Imports to adjust grouped products, warehouse mapping, and daily stock changes without editing rows in place.`
           : ""
       }
+      isLoading={isLoading}
+      initialViewMode={initialViewMode}
     />
   );
 }

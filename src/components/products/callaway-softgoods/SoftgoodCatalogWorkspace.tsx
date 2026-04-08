@@ -6,12 +6,16 @@ type SoftgoodCatalogWorkspaceProps = {
   products: ProductCatalogRecord[];
   mode?: "managed" | "source_readonly";
   sourceCollectionName?: string;
+  isLoading?: boolean;
+  initialViewMode?: "product" | "sku";
 };
 
 export function SoftgoodCatalogWorkspace({
   products,
   mode = "managed",
   sourceCollectionName = "",
+  isLoading = false,
+  initialViewMode = "sku",
 }: SoftgoodCatalogWorkspaceProps) {
   return (
     <ProductCatalogWorkspace
@@ -28,6 +32,8 @@ export function SoftgoodCatalogWorkspace({
           ? `This catalog is currently sourced from ${sourceCollectionName || "the raw softgoods collection"}. Use Imports for catalog refreshes and daily stock updates so grouping and warehouse rules stay consistent.`
           : ""
       }
+      isLoading={isLoading}
+      initialViewMode={initialViewMode}
     />
   );
 }

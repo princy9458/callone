@@ -4,19 +4,25 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
-import { Trash2, Plus, Minus, Tag, Calculator, ChevronRight, Check, Edit2, User, Search } from 'lucide-react';
-import { removeFromCart, updateCartItemQty, setDiscount, clearCart, setSelectedRetailer, setSelectedManager, setSelectedSalesRep } from '@/store/slices/cart/cartSlice';
+import { Tag } from 'lucide-react';
+import { removeFromCart, updateCartItemQty, updateCartItemStock, setDiscount, setSelectedRetailer, setSelectedManager, setSelectedSalesRep } from '@/store/slices/cart/cartSlice';
 import { fetchUsersByRole } from '@/store/slices/users/userThunks';
 import { PageHeader } from '@/components/admin/PageHeader';
-import Image from 'next/image';
-import clsx from 'clsx';
-import Ordercard from '@/components/order/Ordercard';
-import { ProductImage } from '@/components/admin/ProductImage';
 import { OrderModel } from '@/store/slices/order/OrderType';
 import { updateOrder } from '@/store/slices/order/orderThunks';
 import { toast } from 'sonner';
 import OrderHydration from '@/components/order/OrderHydration';
+import Ordercard from '@/components/order/Ordercard';
 
+// New Components
+import { CartHeader } from '@/components/cart/CartHeader';
+import { CartStepper } from '@/components/cart/CartStepper';
+import { CartTable } from '@/components/cart/CartTable';
+import GetAllProducts from '@/components/products/GetAllProducts';
+import { updateStockOgio } from '@/store/slices/ogioSlice/ogioSlice';
+import { updateStockHardgoods } from '@/store/slices/hardgoodSlice/hardgoodSlice';
+import { updateStockTravisMathew } from '@/store/slices/travisMathewSlice/travisMathewSlice';
+import { updateStockSoftgoods } from '@/store/slices/softgoods/softgoodsSlice';
 
 const STEPS = [
   { id: 1, label: 'Submit Order' },
@@ -36,6 +42,9 @@ export default function CartPage() {
   const [isEditingRetailer, setIsEditingRetailer] = useState(false);
   const [isEditingManager, setIsEditingManager] = useState(false);
   const [isEditingSalesRep, setIsEditingSalesRep] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [itemErrors, setItemErrors] = useState<Record<string, boolean>>({});
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isFetchedAllRetailer) dispatch(fetchUsersByRole('retailer'));
@@ -53,32 +62,23 @@ export default function CartPage() {
     const finalBillValue = netBilling * (1 + gstRate / 100);
 
     acc.subtotal += amount;
-    acc.totalDiscount += discountAmount; // This is on basic amount
+    acc.totalDiscount += discountAmount;
     acc.finalTotal += finalBillValue;
     return acc;
   }, { subtotal: 0, totalDiscount: 0, finalTotal: 0 });
 
-  const { subtotal, totalDiscount, finalTotal } = summary;
-
   const {currentOrder} = useSelector((state: RootState) => state.order);
-
-  const {travismathew} = useSelector((state: RootState) => state.travisMathew);
-  const {ogio} = useSelector((state: RootState) => state.ogio);
-  const {hardgoods} = useSelector((state: RootState) => state.hardgoods);
 
   const handleUpdateRetailer = async(retailerId: string) => {
     const data:OrderModel={
       ...currentOrder,
       retailer_id: retailerId,
-      
     }
     const response=await dispatch(updateOrder({ id: currentOrder?._id??"", data: data })).unwrap();
-    console.log("update retailers",response)
-      if(response){
-        setIsEditingRetailer(false);
-        toast.success("Retailer updated successfully");
-      }
-  
+    if(response){
+      setIsEditingRetailer(false);
+      toast.success("Retailer updated successfully");
+    }
   }
 
   const handleUpdateManager = async(managerId: string) => {
@@ -105,372 +105,193 @@ export default function CartPage() {
     }
   }
 
-
   const handleUpdateQty = async (itemId: string, field: 'qty88' | 'qty90', value: number, stock: number) => {
     const validatedValue = Math.max(0, Math.min(value, stock));
-    dispatch(updateCartItemQty({ id: itemId, [field]: validatedValue }));
+    
+    // 1. Update Redux cart state immediately for UI responsiveness
+    dispatch(updateCartItemQty({ id: itemId, sku: itemId, [field]: validatedValue }));
 
-    const updatedItems = cart.items.map(item => {
-      if (item.id === itemId) {
-        return { ...item, [field]: validatedValue };
+    if (itemErrors[itemId]) {
+      const { [itemId]: _, ...rest } = itemErrors;
+      setItemErrors(rest);
+    }
+
+    // 2. Debounce API Call
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    timeoutRef.current = setTimeout(async () => {
+      // Prepare updated items for API call using the LATEST state from store
+      // We use a selector-like logic here, but since we are in a handler, 
+      // we need to be careful about closure over 'cart'.
+      // Redux state will have been updated by the dispatch above.
+      // However, the 'cart' variable from useSelector might be stale in this tick.
+      // But for simple cases, it works because we map over cart.items and replace the one we just updated.
+      
+      const updatedItems = cart.items.map(item => {
+        if (item.id === itemId || item.sku === itemId) {
+          return { ...item, [field]: validatedValue };
+        }
+        return item;
+      });
+
+      const data: OrderModel = {
+        ...currentOrder,
+        items: updatedItems,
+      };
+
+      // 3. Persist to API
+      try {
+        if (currentOrder?._id) {
+          await dispatch(updateOrder({ id: currentOrder._id, data })).unwrap();
+        }
+      } catch (error) {
+        console.error("Failed to update quantity in API:", error);
+        toast.error("Failed to sync quantity with server");
       }
-      return item;
+    }, 500);
+  };
+
+  const getBrandApi = (brand: string) => {
+    const brandLower = brand?.toLowerCase() || "";
+    if (brandLower.includes("travis")) return "/api/admin/products/travismethew";
+    if (brandLower.includes("ogio")) return "/api/admin/products/ogio";
+    if (brandLower.includes("hard")) return "/api/admin/products/hardgoods";
+    if (brandLower.includes("soft")) return "/api/admin/products/softgoods";
+    return "/api/admin/products";
+  };
+
+  const handleSubmitOrder = async () => {
+    setIsSubmitting(true);
+    const newErrors: Record<string, boolean> = {};
+    const stockCheckPromises = cart.items.map(async (item) => {
+      try {
+        const api = getBrandApi(item.brand || "");
+        const response = await fetch(`${api}?sku=${item.sku}`);
+        const result = await response.json();
+          console.log("result of stock submit--",result)
+        if (result.success && result.data && result.data.length > 0) {
+          const latestProduct = result.data[0];
+          const latestStock88 = parseInt(latestProduct.stock_88 || latestProduct.stock88 || "0");
+          const latestStock90 = parseInt(latestProduct.stock_90 || latestProduct.stock90 || "0");
+          console.log("ietm.brand--",item.brand)
+          
+         if(item.brand==="Ogio"){
+          dispatch(updateStockOgio({ 
+            sku: item.sku || "", 
+            stock88: latestStock88, 
+            stock90: latestStock90 
+          }));
+        } if(item.brand==="Travis Mathew"){
+          dispatch(updateStockTravisMathew({ 
+            sku: item.sku || "", 
+            stock88: latestStock88, 
+            stock90: latestStock90 
+          }));
+        }
+        if(item.brand==="Callaway Softgoods"){
+          dispatch(updateStockSoftgoods({ 
+            sku: item.sku || "", 
+            stock88: latestStock88, 
+            stock90: latestStock90 
+          }));
+        }
+        if(item.brand==="Callaway Hardgoods"){
+          dispatch(updateStockHardgoods({ 
+            sku: item.sku || "", 
+            stock88: latestStock88, 
+            stock90: latestStock90 
+          }));
+        }
+          if ((item.qty88 || 0) > latestStock88 || (item.qty90 || 0) > latestStock90) {
+            newErrors[item.id || ""] = true;
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to fetch stock for ${item.sku}:`, error);
+      }
     });
 
-    const data: OrderModel = {
-      ...currentOrder,
-      items: updatedItems,
-    };
+    await Promise.all(stockCheckPromises);
+    setItemErrors(newErrors);
+    setIsSubmitting(false);
 
-    try {
-      await dispatch(updateOrder({ id: currentOrder?._id ?? "", data })).unwrap();
-    } catch (error) {
-      toast.error("Failed to update quantity");
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Some products are out of stock or have insufficient quantity.");
+    } else {
+      try {
+        if (currentOrder?._id) {
+          const data: OrderModel = {
+            ...currentOrder,
+            items: cart.items,
+            status: 'submitted',
+          
+          };
+          await dispatch(updateOrder({ id: currentOrder._id, data })).unwrap();
+          toast.success("Order submitted successfully!");
+        }
+      } catch (error) {
+        toast.error("Failed to update order status");
+      }
     }
   };
 
-
-  
   return (
     <>
-    <OrderHydration />
-    <Ordercard/>
-    <div className="space-y-6 pb-20">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title={!orderNumber || orderNumber === 'new' ? 'New Order' : `Order No: #${orderNumber}`}
-          description=""
-          backHref="/admin/products"
+    <GetAllProducts/>
+      <OrderHydration />
+      <Ordercard/>
+      <div className="space-y-6 pb-20">
+        <div className="flex items-center justify-between">
+          <PageHeader
+            title={!orderNumber || orderNumber === 'new' ? 'New Order' : `Order No: #${orderNumber}`}
+            description=""
+            backHref="/admin/products"
+          />
+          <button className="flex items-center gap-2 rounded-xl border border-border/60 bg-background px-4 py-2 text-sm font-bold text-foreground/70 shadow-sm">
+            <Tag size={16} />
+            Add a Note
+          </button>
+        </div>
+
+        <CartHeader 
+          selectedRetailer={cart.selectedRetailer}
+          selectedManager={cart.selectedManager}
+          selectedSalesRep={cart.selectedSalesRep}
+          allRetailer={allRetailer}
+          allManager={allManager}
+          allSaleRep={allSaleRep}
+          isEditingRetailer={isEditingRetailer}
+          setIsEditingRetailer={setIsEditingRetailer}
+          isEditingManager={isEditingManager}
+          setIsEditingManager={setIsEditingManager}
+          isEditingSalesRep={isEditingSalesRep}
+          setIsEditingSalesRep={setIsEditingSalesRep}
+          onUpdateRetailer={handleUpdateRetailer}
+          onUpdateManager={handleUpdateManager}
+          onUpdateSalesRep={handleUpdateSalesRep}
+          setSelectedRetailer={(val) => dispatch(setSelectedRetailer(val))}
+          setSelectedManager={(val) => dispatch(setSelectedManager(val))}
+          setSelectedSalesRep={(val) => dispatch(setSelectedSalesRep(val))}
         />
-        <button className="flex items-center gap-2 rounded-xl border border-border/60 bg-background px-4 py-2 text-sm font-bold text-foreground/70 shadow-sm">
-          <Tag size={16} />
-          Add a Note
-        </button>
+
+        <CartStepper 
+          steps={STEPS}
+          activeStep={activeStep}
+          isSubmitting={isSubmitting}
+          onSubmitOrder={handleSubmitOrder}
+        />
+
+        <CartTable 
+          items={cart.items}
+          itemErrors={itemErrors}
+          discountType={cart.discountType}
+          discountValue={cart.discountValue}
+          summary={summary}
+          onUpdateQty={handleUpdateQty}
+          onRemoveItem={(id) => dispatch(removeFromCart(id))}
+          onSetDiscount={(type, value) => dispatch(setDiscount({ type, value }))}
+        />
       </div>
-
-      {/* Header Info Card */}
-      <div className="grid gap-6 rounded-[32px] border border-border/50 bg-background p-8 shadow-sm md:grid-cols-3">
-        {/* Retailer Section */}
-        <div className="relative group min-h-[100px]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">Retailer</span>
-            {cart.selectedRetailer && !isEditingRetailer && (
-              <button
-                onClick={() => setIsEditingRetailer(true)}
-                className="p-1.5 rounded-lg hover:bg-foreground/5 text-foreground/40 hover:text-primary transition-colors"
-              >
-                <Edit2 size={12} />
-              </button>
-            )}
-          </div>
-
-          {!cart.selectedRetailer || isEditingRetailer ? (
-            <div className="space-y-2">
-              <select
-                className="w-full rounded-xl border border-border/60 bg-foreground/5 px-3 py-2 text-sm font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-                value={cart.selectedRetailer?._id || ""}
-                onChange={(e) => {
-                  const retailer = allRetailer.find(r => r._id === e.target.value);
-                  dispatch(setSelectedRetailer(retailer || null));
-                  setIsEditingRetailer(false);
-                  handleUpdateRetailer(retailer?._id || "")
-                }}
-              >
-                <option value="">Select Retailer</option>
-                {allRetailer.map((r: any) => (
-                  <option key={r._id} value={r._id}>{r.name}</option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h3 className="text-lg font-black text-primary leading-tight">{cart.selectedRetailer?.name}</h3>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-bold text-foreground/60">
-                <div className="flex flex-col gap-0.5">
-                  <span className="opacity-40 uppercase tracking-tighter text-[9px]">City</span>
-                  <span className="text-foreground/80">{cart.selectedRetailer?.address || "New Delhi, India"}</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="opacity-40 uppercase tracking-tighter text-[9px]">GSTIN NO.</span>
-                  <span className="flex items-center gap-1.5 text-foreground/80">
-                    {cart.selectedRetailer?.gstin || "GSTIN123456"}
-                    <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
-                      <Check size={9} strokeWidth={3} />
-                    </div>
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Manager Section */}
-        <div className="relative group min-h-[100px] border-l border-border/30 pl-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">Manager</span>
-            {cart.selectedManager && !isEditingManager && (
-              <button
-                onClick={() => setIsEditingManager(true)}
-                className="p-1.5 rounded-lg hover:bg-foreground/5 text-foreground/40 hover:text-primary transition-colors"
-              >
-                <Edit2 size={12} />
-              </button>
-            )}
-          </div>
-
-          {!cart.selectedManager || isEditingManager ? (
-            <select
-              className="w-full rounded-xl border border-border/60 bg-foreground/5 px-3 py-2 text-sm font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-              value={cart.selectedManager?._id || ""}
-              onChange={(e) => {
-                const manager = allManager.find(m => m._id === e.target.value);
-                dispatch(setSelectedManager(manager || null));
-                setIsEditingManager(false);
-                handleUpdateManager(manager?._id || "");
-              }}
-            >
-              <option value="">Select Manager</option>
-              {allManager.map((m: any) => (
-                <option key={m._id} value={m._id}>{m.name}</option>
-              ))}
-            </select>
-          ) : (
-            <div className="space-y-1">
-              <h3 className="text-lg font-black text-foreground/80 leading-tight">{cart.selectedManager?.name}</h3>
-              <p className="text-[11px] font-bold text-foreground/40">Assigned Manager</p>
-            </div>
-          )}
-        </div>
-
-        {/* Sales Rep Section */}
-        <div className="relative group min-h-[100px] border-l border-border/30 pl-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">Sales Representative</span>
-            {cart.selectedSalesRep && !isEditingSalesRep && (
-              <button
-                onClick={() => setIsEditingSalesRep(true)}
-                className="p-1.5 rounded-lg hover:bg-foreground/5 text-foreground/40 hover:text-primary transition-colors"
-              >
-                <Edit2 size={12} />
-              </button>
-            )}
-          </div>
-
-          {!cart.selectedSalesRep || isEditingSalesRep ? (
-            <select
-              className="w-full rounded-xl border border-border/60 bg-foreground/5 px-3 py-2 text-sm font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-              value={cart.selectedSalesRep?._id || ""}
-              onChange={(e) => {
-                const rep = allSaleRep.find(s => s._id === e.target.value);
-                dispatch(setSelectedSalesRep(rep || null));
-                setIsEditingSalesRep(false);
-                handleUpdateSalesRep(rep?._id || "");
-              }}
-            >
-              <option value="">Select Representative</option>
-              <option value="self">Self</option>
-              {allSaleRep.map((s: any) => (
-                <option key={s._id} value={s._id}>{s.name}</option>
-              ))}
-            </select>
-          ) : (
-            <div className="space-y-1">
-              <h3 className="text-lg font-black text-foreground/80 leading-tight">{cart.selectedSalesRep?.name || "Self"}</h3>
-              <p className="text-[11px] font-bold text-foreground/40">Active Representative</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Stepper */}
-      <div className="flex items-center justify-between px-12 py-4">
-        {STEPS.map((step, idx) => (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center space-y-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold transition-all ${activeStep >= step.id ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-foreground/5 text-foreground/40'
-                }`}>
-                {step.id}
-              </div>
-              <div className="text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-tighter text-foreground/30">Step {step.id}</span>
-                <span className={`text-xs font-bold ${activeStep >= step.id ? 'text-foreground' : 'text-foreground/40'}`}>{step.label}</span>
-              </div>
-              {step.id === 1 && (
-                <button className="mt-2 rounded-xl bg-black px-4 py-2 text-[10px] font-bold uppercase text-white shadow-lg">Submit Order</button>
-              )}
-            </div>
-            {idx < STEPS.length - 1 && (
-              <div className="h-[2px] flex-1 bg-border/40 mx-4 mt-[-40px]" />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Cart Table */}
-      <div className="overflow-hidden rounded-[32px] border border-border/50 bg-background shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-foreground/[0.02] text-[10px] font-bold uppercase tracking-wider text-foreground/45">
-              <th className="px-6 py-4">S.No</th>
-              <th className="px-6 py-4">Product</th>
-              <th className="px-6 py-4">Brand</th>
-              <th className="px-6 py-4">SKU</th>
-              <th className="px-6 py-4">Description</th>
-              <th className="px-6 py-4 text-center">Qty88</th>
-              <th className="px-6 py-4 text-center">Qty90</th>
-              <th className="px-6 py-4 text-center">Qty</th>
-              <th className="px-6 py-4">MRP</th>
-              <th className="px-6 py-4">Amount</th>
-              <th className="px-6 py-4 text-center">GST %</th>
-              <th className="px-6 py-4">Less GST</th>
-              <th className="px-6 py-4 text-center">Disc (%)</th>
-              <th className="px-6 py-4">Disc Amt</th>
-              <th className="px-6 py-4">Net Billings</th>
-              <th className="px-6 py-4">Final Bill Value</th>
-              <th className="px-6 py-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/40">
-            {cart.items.map((item: any, index: number) => {
-              const qty = (item?.qty88 ?? 0) + (item?.qty90 ?? 0);
-              const amount = (item.mrp ?? 0) * qty;
-              const gstRate = item.gst ?? 0;
-              const lessGst = amount / (1 + gstRate / 100);
-              const discountValue = cart.discountValue;
-              const discountAmount = lessGst * (discountValue / 100);
-              const netBilling = lessGst - discountAmount;
-              const finalBillValue = netBilling * (1 + gstRate / 100);
-   
-              const stock88 = item.stock88 ?? 0;
-              const stock90 = item.stock90 ?? 0;
-
-              return (
-                <tr key={item.id} className="group hover:bg-foreground/[0.01] transition-colors">
-                  <td className="px-6 py-4 text-xs font-bold text-foreground/40">{index + 1}</td>
-                  <td className="px-6 py-4">
-                    <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-border/40 bg-foreground/[0.02]">
-                      <ProductImage 
-                        brandName={item.brand || ""} 
-                        rowData={item} 
-                        className="h-full w-full"
-                      />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/70">{item.brand}</td>
-                  <td className="px-6 py-4 text-[10px] font-black tracking-tight">{item.sku}</td>
-                  <td className="px-6 py-4 text-[10px] font-medium text-foreground/50 max-w-[150px] truncate">
-                    {item.description ?? ""}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center">
-                      <div className={clsx(
-                        "flex items-center gap-1 rounded-lg border border-border/60 bg-foreground/5 p-0.5",
-                        stock88 === 0 && "opacity-50 grayscale"
-                      )}>
-                        <span className="px-2 text-[10px] font-bold text-foreground/40 min-w-[24px] text-center">
-                          {stock88}
-                        </span>
-                        <div className="w-[1px] h-3 bg-border/40" />
-                        <input
-                          type="number"
-                          value={item.qty88}
-                          disabled={stock88 === 0}
-                          onChange={(e) => handleUpdateQty(item.id || '', 'qty88', parseInt(e.target.value) || 0, stock88)}
-                          className="w-10 bg-transparent py-1 text-center text-[10px] font-bold outline-none disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center">
-                      <div className={clsx(
-                        "flex items-center gap-1 rounded-lg border border-border/60 bg-foreground/5 p-0.5",
-                        stock90 === 0 && "opacity-50 grayscale"
-                      )}>
-                        <span className="px-2 text-[10px] font-bold text-foreground/40 min-w-[24px] text-center">
-                          {stock90}
-                        </span>
-                        <div className="w-[1px] h-3 bg-border/40" />
-                        <input
-                          type="number"
-                          value={item.qty90}
-                          disabled={stock90 === 0}
-                          onChange={(e) => handleUpdateQty(item.id || '', 'qty90', parseInt(e.target.value) || 0, stock90)}
-                          className="w-10 bg-transparent py-1 text-center text-[10px] font-bold outline-none disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center text-[10px] font-bold text-primary">{qty}</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/70 text-right">₹{item.mrp?.toLocaleString() ?? 0}</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/70 text-right">₹{amount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/40 text-center">{gstRate}%</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/60 text-right">₹{lessGst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/40 text-center">{discountValue}%</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-red-500/80 text-right">₹{discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4 text-[10px] font-bold text-foreground/80 text-right">₹{netBilling.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4 text-[10px] font-black text-primary text-right">₹{finalBillValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center">
-                      <button
-                        onClick={() => dispatch(removeFromCart(item.id || ''))}
-                        className="rounded-lg p-1.5 text-foreground/20 hover:bg-red-500/10 hover:text-red-500 transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {/* Footer / Summary Section */}
-        <div className="flex flex-wrap items-start justify-between gap-8 bg-foreground/[0.02] p-8">
-          <div className="flex items-center gap-4 bg-background p-3 rounded-[24px] border border-border/60 shadow-sm">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block">Discount Mode</span>
-              <select
-                value={cart.discountType}
-                onChange={(e) => dispatch(setDiscount({ type: e.target.value as any, value: cart.discountValue }))}
-                className="rounded-lg border-none bg-foreground/5 px-3 py-1.5 text-xs font-bold outline-none"
-              >
-                <option value="inclusive">Inclusive</option>
-                <option value="exclusive">Exclusive</option>
-                   <option value="flat">Flat</option>
-              </select>
-            </div>
-            <div className="h-10 w-[1px] bg-border/40" />
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={cart.discountValue}
-                onChange={(e) => dispatch(setDiscount({ type: cart.discountType, value: parseInt(e.target.value) || 0 }))}
-                className="w-12 rounded-lg bg-foreground/5 px-2 py-1.5 text-center text-sm font-bold outline-none"
-              />
-              <span className="text-xs font-bold text-foreground/40">%</span>
-            </div>
-          </div>
-
-          <div className="w-full max-w-[320px] space-y-4">
-            <div className="flex items-center justify-between text-xs font-bold text-foreground/60">
-              <span>Sub Total:</span>
-              <span className="text-foreground font-black">₹{subtotal.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs font-bold text-foreground/60">
-              <span>Discount:</span>
-              <span className="text-red-500">₹{totalDiscount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            <div className="h-[1px] bg-border/60" />
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-foreground/80">Total Net Bill:</span>
-              <span className="text-xl font-black text-primary">₹{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     </>
   );
 }

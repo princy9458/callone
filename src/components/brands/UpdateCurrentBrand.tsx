@@ -37,6 +37,13 @@ const UpdateCurrentBrand = () => {
                 }
 
                 isApi.current = true
+            } else if (brandName === "callaway-softgoods") {
+                const brand = allBrand.find((brand) => brand?.name === "Callaway Softgoods")
+                if (brand) {
+                    dispatch(setCurrentBrand(brand))
+                }
+
+                isApi.current = true
             }
 
             //   dispatch(updateBrand())

@@ -7,12 +7,14 @@ import {
   fetchSoftGoodById,
   updateSoftGood,
 } from './softgoodsThunks';
+import { updateCartItemStock } from '../cart/cartSlice';
 
 export interface SoftGoodsState {
   softgoods: SoftGoodInterface[];
   selectedSoftGoods: SoftGoodInterface[];
   currentSoftGood: SoftGoodInterface | null;
   isFetchedSoftGoods: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -21,6 +23,7 @@ const initialState: SoftGoodsState = {
   selectedSoftGoods: [],
   currentSoftGood: null,
   isFetchedSoftGoods: false,
+  isLoading: false,
   error: null,
 };
 
@@ -30,6 +33,14 @@ export const softgoodsSlice = createSlice({
   reducers: {
     setSoftGoods: (state, action: PayloadAction<SoftGoodInterface[]>) => {
       state.softgoods = action.payload;
+    },
+    updateStockSoftgoods: (state, action: PayloadAction<{ sku: string; stock88: number; stock90: number }>) => {
+        const { sku, stock88, stock90 } = action.payload;
+        const index = state.softgoods.findIndex((item) => item.sku === sku);
+        if (index !== -1) {
+            if (stock88 !== undefined) state.softgoods[index].stock_88 = stock88;
+            if (stock90 !== undefined) state.softgoods[index].stock_90 = stock90;
+        }
     },
     setSelectedSoftGoods: (state, action: PayloadAction<SoftGoodInterface[]>) => {
       state.selectedSoftGoods = action.payload;
@@ -48,16 +59,29 @@ export const softgoodsSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // updateCartItemStock
+    builder.addCase(updateCartItemStock, (state, action) => {
+      const { id, stock88, stock90 } = action.payload;
+      const index = state.softgoods.findIndex((item) => item.sku === id || item._id === id);
+      if (index !== -1) {
+        if (stock88 !== undefined) state.softgoods[index].stock_88 = stock88;
+        if (stock90 !== undefined) state.softgoods[index].stock_90 = stock90;
+      }
+    });
+
     // fetchSoftGoods
     builder.addCase(fetchSoftGoods.pending, (state) => {
+      state.isLoading = true;
       state.isFetchedSoftGoods = false;
       state.error = null;
     });
     builder.addCase(fetchSoftGoods.fulfilled, (state, action) => {
+      state.isLoading = false;
       state.isFetchedSoftGoods = true;
       state.softgoods = action.payload;
     });
     builder.addCase(fetchSoftGoods.rejected, (state, action) => {
+      state.isLoading = false;
       state.isFetchedSoftGoods = false;
       state.error = action.payload as string;
     });
@@ -125,6 +149,7 @@ export const {
   setIsFetchedSoftGoods,
   setError,
   clearSelectedSoftGoods,
+  updateStockSoftgoods
 } = softgoodsSlice.actions;
 
 export default softgoodsSlice.reducer;

@@ -17,7 +17,7 @@ const GetAllOrders = () => {
             user?.role == "super_admin"){
             dispatch(fetchOrders())
         }
-    }, [isFetchedOrders,user])
+    }, [isFetchedOrders, user, dispatch])
 
 
   return (

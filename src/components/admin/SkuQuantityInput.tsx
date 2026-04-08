@@ -31,44 +31,45 @@ export function SkuQuantityInput({
     setInputValue(value);
   }, [value]);
 
-  // Sync from maxStock if needed
-  useEffect(() => {
-    if (inputvalue > maxStock) {
-      handleChange(maxStock);
-    }
-  }, [maxStock]);
-
-  const dispatch = useDispatch<AppDispatch>()
-
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value) || 0;
     handleChange(val);
   };
 
+  const handleChange = React.useCallback(
+    (val: number) => {
+      const clampedVal = Math.max(0, Math.min(val, maxStock));
+      setInputValue(clampedVal); // Immediate local update
 
-  const handleChange = (val: number) => {
-    const clampedVal = Math.max(0, Math.min(val, maxStock));
-    setInputValue(clampedVal); // Immediate local update
-    
-    const data: CartItem = {
-      sku: row.sku,
-      brand: currentBrand?.name,
-      description: row.description,
-      image: row.primary_image_url,
-      [qty]: clampedVal,
-      mrp: Number(row.mrp) || 0,
-      gst: Number(row.gst) || 0,
-      amount: Number(row.amount) || 0,
-      discount: 0,
-      lessDiscount: 0,
-      netBilling: 0,
-      finalAmount: 0,
+      const data: CartItem = {
+        sku: row.sku,
+        brand: currentBrand?.name,
+        description: row.description,
+        image: row.primary_image_url,
+        [qty]: clampedVal,
+        mrp: Number(row.mrp) || 0,
+        gst: Number(row.gst) || 0,
+        amount: Number(row.mrp) || 0,
+        discount: 0,
+        lessDiscount: 0,
+        netBilling: 0,
+        finalAmount: 0,
+      };
+      const updateData = calculateValues(data, 22, "inclusive");
+      // console.log("updateData---->",updateData)
+      dispatch(addToCart(updateData));
+    },
+    [maxStock, row, currentBrand, qty, dispatch]
+  );
+
+  // Sync from maxStock if needed
+  useEffect(() => {
+    if (inputvalue > maxStock) {
+      handleChange(maxStock);
     }
-    const updateData= calculateValues(data,22,"inclusive")
-    // console.log("updateData---->",updateData)
-     dispatch(addToCart(updateData))
-  }
+  }, [maxStock, inputvalue, handleChange]);
 
 
   //add the project into the DB

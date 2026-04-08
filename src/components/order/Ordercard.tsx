@@ -21,7 +21,7 @@ const Ordercard = () => {
             console.log("updsated card orrder",data)
         }
         
-    },[items,selectedRetailer,selectedManager,selectedSalesRep, discountType, discountValue])
+    },[items, discountType, discountValue])
     return (
   null
   )

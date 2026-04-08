@@ -27,12 +27,21 @@ export default function ProductSectionPage({
 }) {
   const section = getCatalogSection(params.section);
 
-  const softgoods = useSelector((state: RootState) => state.softgoods.softgoods);
-  const hardgoods = useSelector((state: RootState) => state.hardgoods.hardgoods);
-  const ogio = useSelector((state: RootState) => state.ogio.ogio);
-  const travis = useSelector(
-    (state: RootState) => state.travisMathew.travismathew
+  const { softgoods, isLoading: isLoadingSoftgoods } = useSelector((state: RootState) => state.softgoods);
+  const { hardgoods, isLoading: isLoadingHardgoods } = useSelector((state: RootState) => state.hardgoods);
+  const { ogio, isLoading: isLoadingOgio } = useSelector((state: RootState) => state.ogio);
+  const { travismathew: travis, isLoading: isLoadingTravis } = useSelector(
+    (state: RootState) => state.travisMathew
   );
+
+  const isLoading = useMemo(() => {
+    if (!section) return false;
+    if (section.slug === "callaway-softgoods") return isLoadingSoftgoods;
+    if (section.slug === "callaway-hardgoods") return isLoadingHardgoods;
+    if (section.slug === "ogio") return isLoadingOgio;
+    if (section.slug === "travis-mathew") return isLoadingTravis;
+    return false;
+  }, [section, isLoadingSoftgoods, isLoadingHardgoods, isLoadingOgio, isLoadingTravis]);
 
   const products = useMemo(() => {
     if (!section) return [];
@@ -61,6 +70,8 @@ export default function ProductSectionPage({
     (c) => c.sectionSlug === section.slug
   )?.collectionName;
 
+  const showWorkspace = products.length > 0 || isLoading;
+
   return (
     <>
       <GetAllSoftGood />
@@ -68,13 +79,15 @@ export default function ProductSectionPage({
       <GetAllOgio />
       <GetAllTravisMethew />
 
-      {products.length > 0 ? (
+      {showWorkspace ? (
         <>
           {section.slug === "ogio" && (
             <OgioCatalogWorkspace
               products={products}
               mode="source_readonly"
               sourceCollectionName={collectionName}
+              isLoading={isLoading}
+              initialViewMode="sku"
             />
           )}
 
@@ -83,6 +96,8 @@ export default function ProductSectionPage({
               products={products}
               mode="source_readonly"
               sourceCollectionName={collectionName}
+              isLoading={isLoading}
+              initialViewMode="sku"
             />
           )}
 
@@ -91,6 +106,8 @@ export default function ProductSectionPage({
               products={products}
               mode="source_readonly"
               sourceCollectionName={collectionName}
+              isLoading={isLoading}
+              initialViewMode="sku"
             />
           )}
 
@@ -99,6 +116,8 @@ export default function ProductSectionPage({
               products={products}
               mode="source_readonly"
               sourceCollectionName={collectionName}
+              isLoading={isLoading}
+              initialViewMode="sku"
             />
           )}
         </>
@@ -109,11 +128,11 @@ export default function ProductSectionPage({
               <div className="h-2 w-2 animate-ping rounded-full bg-primary" />
             </div>
             <h3 className="text-xl font-bold text-white uppercase tracking-wider">
-              Loading Catalog...
+              No Data Available
             </h3>
             <p className="text-sm text-white/50 leading-relaxed font-medium">
-              We are preparing the {section.label} product data from the store.
-              This will only take a moment.
+              We couldn&apos;t find any products in the {section.label} section.
+              If this is unexpected, please check your connection or try again later.
             </p>
           </div>
         </div>

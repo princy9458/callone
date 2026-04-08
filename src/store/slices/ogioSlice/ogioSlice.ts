@@ -2,12 +2,14 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ProductExcelData } from '@/components/products/ProductType';
 import { createOgio, deleteOgio, fetchOgio, fetchOgioById, updateOgio } from './ogioThunks';
 import { OgioType } from '@/components/products/Ogio/OgioType';
+import { updateCartItemStock } from '../cart/cartSlice';
 
 export interface OgioState {
   ogio: OgioType[];
   selectedOgio: OgioType[];
   currentOgio: OgioType | null;
   isFetchedOgio: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -16,6 +18,7 @@ const initialState: OgioState = {
   selectedOgio: [],
   currentOgio: null,
   isFetchedOgio: false,
+  isLoading: false,
   error: null,
 };
 
@@ -26,6 +29,18 @@ export const ogioSlice = createSlice({
     setOgio: (state, action: PayloadAction<OgioType[]>) => {
       state.ogio = action.payload;
     },
+
+    updateStockOgio: (state, action) => {
+        const { sku, stock90 } = action.payload;
+        debugger
+        const index = state.ogio.findIndex((item) => item.sku === sku);
+        if (index !== -1 && stock90 !== undefined) {
+          state.ogio[index] = {
+            ...state.ogio[index],
+            stock_90: stock90
+          };
+        }
+        },
     setSelectedOgio: (state, action: PayloadAction<OgioType[]>) => {
       state.selectedOgio = action.payload;
     },
@@ -43,16 +58,32 @@ export const ogioSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // updateCartItemStock
+    builder.addCase(updateCartItemStock, (state, action) => {
+      const { id, stock90 } = action.payload;
+      debugger
+      const index = state.ogio.findIndex((item) => item.sku === id || item._id === id);
+      if (index !== -1 && stock90 !== undefined) {
+        state.ogio[index] = {
+            ...state.ogio[index],
+            stock_90: stock90
+        };
+      }
+    });
+
     // fetchOgio
     builder.addCase(fetchOgio.pending, (state) => {
+      state.isLoading = true;
       state.isFetchedOgio = false;
       state.error = null;
     });
     builder.addCase(fetchOgio.fulfilled, (state, action) => {
+      state.isLoading = false;
       state.isFetchedOgio = true;
       state.ogio = action.payload;
     });
     builder.addCase(fetchOgio.rejected, (state, action) => {
+      state.isLoading = false;
       state.isFetchedOgio = false;
       state.error = action.payload as string;
     });
@@ -119,6 +150,7 @@ export const {
   setIsFetchedOgio,
   setError,
   clearSelectedOgio,
+  updateStockOgio
 } = ogioSlice.actions;
 
 export default ogioSlice.reducer;

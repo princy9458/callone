@@ -17,8 +17,12 @@ export interface CartItem {
   amount?: number;
   discount?: number;
   lessDiscount?: number;
+  gstRate?: number;
+  lessGst?: number;
+  discountAmt?: number;
   netBilling?: number;
   finalAmount?: number;
+  finalBillValue?: number;
 }
 
 
@@ -60,28 +64,40 @@ const cartSlice = createSlice({
       const payloads = Array.isArray(action.payload) ? action.payload : [action.payload];
       
       payloads.forEach((newItem) => {
+        const itemId = newItem.id || newItem.sku;
         const existingItemIndex = state.items.findIndex(
-          (item) => item.sku === newItem.sku
+          (item) => item.sku === newItem.sku || (item.id === itemId && itemId !== undefined)
         );
 
         if (existingItemIndex !== -1) {
           state.items[existingItemIndex] = {
             ...state.items[existingItemIndex],
             ...newItem,
+            id: itemId, // Ensure id is set
           };
         } else {
-          state.items.push(newItem);
+          state.items.push({ ...newItem, id: itemId });
         }
       });
     },
     removeFromCart(state, action: PayloadAction<string>) {
       state.items = state.items.filter(item => item.id !== action.payload);
     },
-    updateCartItemQty(state, action: PayloadAction<{ id: string, qty88?: number, qty90?: number }>) {
+    updateCartItemQty(state, action: PayloadAction<{ id?: string, sku?: string, qty88?: number, qty90?: number }>) {
+      const { id, sku, qty88, qty90 } = action.payload;
+      const item = state.items.find(item => 
+        (id && item.id === id) || (sku && item.sku === sku)
+      );
+      if (item) {
+        if (qty88 !== undefined) item.qty88 = qty88;
+        if (qty90 !== undefined) item.qty90 = qty90;
+      }
+    },
+    updateCartItemStock(state, action: PayloadAction<{ id: string, stock88?: number, stock90?: number }>) {
       const item = state.items.find(item => item.id === action.payload.id);
       if (item) {
-        if (action.payload.qty88 !== undefined) item.qty88 = action.payload.qty88;
-        if (action.payload.qty90 !== undefined) item.qty90 = action.payload.qty90;
+        if (action.payload.stock88 !== undefined) item.stock88 = action.payload.stock88;
+        if (action.payload.stock90 !== undefined) item.stock90 = action.payload.stock90;
       }
     },
     clearCart(state) {
@@ -122,6 +138,7 @@ export const {
   addToCart,
   removeFromCart,
   updateCartItemQty,
+  updateCartItemStock,
   clearCart,
   setDiscount,
   setCartFromOrder

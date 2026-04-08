@@ -48,6 +48,8 @@ export type ProductCatalogWorkspaceProps = {
   newProductHref?: string | null;
   newProductLabel?: string;
   sourceNotice?: string;
+  isLoading?: boolean;
+  initialViewMode?: "product" | "sku";
 };
 
 export interface ProductExcelData {

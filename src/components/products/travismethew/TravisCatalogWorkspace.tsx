@@ -6,12 +6,16 @@ type TravisCatalogWorkspaceProps = {
   products: ProductCatalogRecord[];
   mode?: "managed" | "source_readonly";
   sourceCollectionName?: string;
+  isLoading?: boolean;
+  initialViewMode?: "product" | "sku";
 };
 
 export function TravisCatalogWorkspace({
   products,
   mode = "managed",
   sourceCollectionName = "",
+  isLoading = false,
+  initialViewMode = "sku",
 }: TravisCatalogWorkspaceProps) {
   return (
     <ProductCatalogWorkspace
@@ -28,6 +32,8 @@ export function TravisCatalogWorkspace({
           ? `This catalog is currently sourced from ${sourceCollectionName || "the raw Travis collection"}. Use Imports to normalize style, season, line, and stock updates before they affect the shared catalog behavior.`
           : ""
       }
+      isLoading={isLoading}
+      initialViewMode={initialViewMode}
     />
   );
 }
