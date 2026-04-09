@@ -206,6 +206,7 @@ export const OrderList = () => {
             </table>
           ) : (
             <table className="w-full text-left">
+              
               <thead>
                 <tr className="border-b border-border/40 bg-foreground/[0.01] bg-[#111111] text-white">
                   <th className="px-6 py-5"></th>
