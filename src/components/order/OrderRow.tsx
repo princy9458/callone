@@ -6,6 +6,7 @@ import { OrderModel } from "@/store/slices/order/OrderType";
 import { UserInterface } from "@/store/slices/users/userSlice";
 import { OrderItemsTable } from "./OrderItemsTable";
 import { Plus, Minus, Download, Edit3, Loader2, FileSpreadsheet, FileText } from "lucide-react";
+import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentOrder } from "@/store/slices/order/OrderSlice";
@@ -68,110 +69,113 @@ export const OrderRow = ({ order, retailers, managers }: OrderRowProps) => {
     router.push(`/admin/cart/${order.orderNumber}`);
   }
 
-  return (
-    <>
-      <tr className={`group transition-all hover:bg-white/[0.03] ${isExpanded ? "bg-white/[0.04]" : ""}`}>
-        <td className="px-6 py-4">
+  return (    <>
+      <tr className={clsx(
+        "group border-b border-border/20 transition-all duration-300 hover:bg-foreground/[0.02]",
+        isExpanded ? "bg-foreground/[0.03]" : ""
+      )}>
+        <td className="px-6 py-5">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`flex h-6 w-6 items-center justify-center rounded-lg border transition-all ${
+            className={clsx(
+              "flex h-7 w-7 items-center justify-center rounded-lg border transition-all duration-500 active:scale-90",
               isExpanded 
-                ? "border-primary bg-primary/20 text-primary shadow-[0_0_12px_rgba(36,73,111,0.3)]" 
-                : "border-white/10 bg-white/5 text-white/40 hover:border-white/20 hover:text-white"
-            }`}
+                ? "border-primary bg-primary text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]" 
+                : "border-border/40 bg-foreground/[0.03] text-foreground/30 hover:border-foreground/20 hover:text-foreground"
+            )}
           >
-            {isExpanded ? <Minus size={14} /> : <Plus size={14} />}
+            {isExpanded ? <Minus size={14} strokeWidth={3} /> : <Plus size={14} strokeWidth={3} />}
           </button>
         </td>
-        <td className="px-6 py-4 font-mono text-sm font-bold text-white/90">
+        <td className="px-6 py-5 font-mono text-sm font-black text-foreground/90 tracking-tight">
           {order.id || order.orderNumber || "—"}
         </td>
-        <td className="px-6 py-4 text-sm font-semibold text-white/80">
+        <td className="px-6 py-5 text-[14px] font-semibold text-foreground text-foreground/80  tracking-tight">
           {getRetailerName(order.retailer_id)}
         </td>
-        <td className="px-6 py-4">
+        <td className="px-6 py-5">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-white/70">{created.date}</span>
-            <span className="text-[10px] uppercase tracking-wider text-white/30">{created.time}</span>
+            <span className="text-[14px] font-semibold text-foreground">{created.date}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/20 italic">{created.time}</span>
           </div>
         </td>
-        <td className="px-6 py-4">
+        <td className="px-6 py-5">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-white/70">{updated.date}</span>
-            <span className="text-[10px] uppercase tracking-wider text-white/30">{updated.time}</span>
+            <span className="text-[14px] font-semibold text-foreground">{updated.date}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/20 italic">{updated.time}</span>
           </div>
         </td>
-        <td className="px-6 py-4">
-          <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-bold text-rose-400">
+        <td className="px-6 py-5">
+          <span className="inline-flex items-center rounded-lg bg-rose-500/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-rose-500 border border-rose-500/10">
              ₹{(order.discountAmount || (order as any).pricing?.discountAmount || 0).toLocaleString()}
           </span>
         </td>
-        <td className="px-6 py-4 text-sm font-black text-white">
+        <td className="px-6 py-5 text-[14px] font-semibold text-foreground tracking-tighter">
           ₹{(order.totalAmount || (order as any).pricing?.finalTotal || 0).toLocaleString()}
         </td>
-        <td className="px-6 py-4">
-          <span className={`inline-flex rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
+        <td className="px-6 py-5">
+          <span className={clsx(
+            "inline-flex rounded-lg px-3 py-1.5 text-[14px] font-semibold text-foreground tracking-[0] border",
             order.status === "completed" 
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-          }`}>
+              ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/20" 
+              : "bg-amber-500/5 text-amber-500 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+          )}>
             {order.status || "pending"}
           </span>
         </td>
-        <td className="px-6 py-4 text-right">
-          <div className="flex items-center justify-end gap-2">
-            <div className="group relative flex items-center justify-center">
+        <td className="px-6 py-5 text-right">
+          <div className="flex items-center justify-end gap-3">
+            <div className="group/action relative">
               <button 
                 onClick={() => downloadOrderExcel(order, retailers, managers)}
-                className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2 text-emerald-400/60 transition hover:border-emerald-500/40 hover:text-emerald-400"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
               >
-                <FileSpreadsheet size={14} />
+                <FileSpreadsheet size={16} />
               </button>
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-                <div className="bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                  EXCEL
-                  <div className="absolute top-[95%] left-1/2 -translate-x-1/2 border-x-4 border-x-transparent border-t-4 border-t-emerald-500"></div>
-                </div>
+              <div className="absolute -top-9 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
+                <span className="rounded bg-[#111111] px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white">Excel</span>
               </div>
             </div>
 
-            <div className="group relative flex items-center justify-center">
+            <div className="group/action relative">
               <button 
                 onClick={() => downloadOrderPDF(order, retailers, managers, allSaleRep)}
-                className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-2 text-rose-400/60 transition hover:border-rose-500/40 hover:text-rose-400"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500"
               >
-                <FileText size={14} />
+                <FileText size={16} />
               </button>
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-                <div className="bg-rose-500 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                  PDF
-                  <div className="absolute top-[95%] left-1/2 -translate-x-1/2 border-x-4 border-x-transparent border-t-4 border-t-rose-400"></div>
-                </div>
+              <div className="absolute -top-9 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
+                <span className="rounded bg-[#111111] px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white">PDF</span>
               </div>
             </div>
 
-            <button className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/40 transition hover:border-white/20 hover:text-white">
-              <Edit3 size={14} 
+            <button 
               onClick={() => handleOrderEdit(order)}
-              />
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-[#111111] hover:text-white dark:hover:bg-primary"
+            >
+              <Edit3 size={16} />
             </button>
           </div>
         </td>
       </tr>
       
-      {/* Expanded Content */}
+      {/* Expanded Content with Grid Layout */}
       <AnimatePresence>
         {isExpanded && (
           <tr>
-            <td colSpan={9} className="bg-black/40 px-6 py-0">
+            <td colSpan={9} className="bg-foreground/[0.01] p-0">
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
-                <div className="py-6 pr-6 pl-12">
+                <div className="mx-6 mb-6 mt-2 rounded-[24px] border border-border/20 bg-white/40 dark:bg-white/[0.02] p-8 shadow-inner backdrop-blur-xl">
+                    <div className="mb-4 flex items-center justify-between border-b border-border/10 pb-4">
+                       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-foreground/20 italic">Order Manifest Archive</h4>
+                       <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    </div>
                    <OrderItemsTable items={order.items || []} />
                 </div>
               </motion.div>

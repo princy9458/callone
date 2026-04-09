@@ -21,7 +21,7 @@ export function PageHeader({ title, description, action, icon: Icon }: PageHeade
           </div>
         )}
         <div className="space-y-1">
-          <h1 className="text-2xl  uppercase tracking-widest font-semibold ">{title}</h1>
+          <h1 className="text-2xl  uppercase tracking-widest font-bold ">{title}</h1>
           {description && <p className="text-sm font-medium ">{description}</p>}
         </div>
       </div>

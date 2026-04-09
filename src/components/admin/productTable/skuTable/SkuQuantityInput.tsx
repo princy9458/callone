@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from "@/store";
 import { addToCart, CartItem } from "@/store/slices/cart/cartSlice";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import clsx from "clsx";
 
 interface SkuQuantityInputProps {
   row: any;
@@ -77,20 +78,22 @@ export function SkuQuantityInput({
 
   return (
     <div
-      className={`inline-flex items-stretch overflow-hidden rounded-xl border transition-all duration-200 ${
+      className={clsx(
+        "inline-flex items-stretch overflow-hidden rounded-xl border transition-all duration-300",
         isError
-          ? "border-red-500 bg-red-500/5 ring-1 ring-red-500/20"
-          : "border-border/60 bg-white"
-      }`}
-      style={{ height: "38px" }}
+          ? "border-rose-500 bg-rose-500/5 ring-1 ring-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.1)]"
+          : "border-border/40 bg-white dark:bg-foreground/[0.02] shadow-sm hover:border-foreground/20 hover:shadow-md"
+      )}
+      style={{ height: "40px" }}
     >
       {/* Stock Display (Left indicator) */}
       <div
-        className={`flex items-center justify-center px-2.5 text-[10px] font-black leading-none ${
-          isError ? "bg-red-500/10 text-red-500" : "bg-foreground/5 text-foreground/50 border-r border-border/40"
-        }`}
-        style={{ minWidth: "32px", opacity: isError ? 1 : 0.6 }}
-        title="Stock Limit"
+        className={clsx(
+          "flex items-center justify-center px-3 text-[9px] font-black uppercase tracking-widest transition-colors",
+          isError ? "bg-rose-500/10 text-rose-500" : "bg-foreground/5 text-foreground/30 border-r border-border/40"
+        )}
+        style={{ minWidth: "38px" }}
+        title="Physical Inventory Limit"
       >
         {maxStock}
       </div>
@@ -102,9 +105,10 @@ export function SkuQuantityInput({
         pattern="[0-9]*"
         value={inputvalue}
         onChange={handleManualChange}
-        className={`w-14 bg-transparent px-1 text-center text-sm font-bold focus:outline-none ${
-          isError ? "text-red-500" : "text-foreground"
-        }`}
+        className={clsx(
+          "w-12 bg-transparent px-1 text-center text-sm font-black tracking-tighter focus:outline-none transition-colors",
+          isError ? "text-rose-500" : "text-foreground/90"
+        )}
       />
 
       {/* Stepper Controls */}
@@ -112,18 +116,18 @@ export function SkuQuantityInput({
         <button
           disabled={inputvalue >= maxStock}
           onClick={() => handleChange(inputvalue + 1)}
-          className="flex flex-1 items-center justify-center px-1.5 text-[9px] hover:bg-foreground/10 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Increase quantity"
+          className="flex flex-1 items-center justify-center px-2 text-[8px] hover:bg-foreground/10 transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed border-b border-border/20"
+          aria-label="Increase level"
         >
-          ▲
+          <span className="mb-0.5">▲</span>
         </button>
         <button
           disabled={inputvalue <= 0}
           onClick={() => handleChange(Math.max(0, inputvalue - 1))}
-          className="flex flex-1 items-center justify-center border-t border-border/40 px-1.5 text-[9px] hover:bg-foreground/10 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          aria-label="Decrease quantity"
+          className="flex flex-1 items-center justify-center px-2 text-[8px] hover:bg-foreground/10 transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed"
+          aria-label="Decrease level"
         >
-          ▼
+          <span className="mt-0.5">▼</span>
         </button>
       </div>
     </div>

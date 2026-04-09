@@ -168,91 +168,89 @@ export function CatalogHeader({
       </div>
 
       <div className="space-y-4 px-4 py-4">
-        {isSourceReadonly && sourceNotice ? (
+        {/* {isSourceReadonly && sourceNotice ? (
           <div className="rounded-[22px] border border-primary/20 bg-primary/8 px-4 py-4 text-sm text-foreground/72">
             {sourceNotice}
           </div>
-        ) : null}
+        ) : null} */}
 
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.3fr)_auto_auto_auto]">
-          <label className="premium-search flex items-center gap-3 rounded-[22px] px-4 py-3">
-            <Search className="h-4 w-4 text-foreground/45" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by product, base SKU, variant SKU, brand, category, or attribute value"
-              className="w-full border-none bg-transparent p-0 text-sm"
-            />
-          </label>
+      <div className="flex flex-wrap items-center gap-3">
 
-          <button
-            onClick={() => setFilterPanelOpen((current: boolean) => !current)}
-            className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-            {activeFilterCount ? (
-              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </button>
+  <label className="premium-search flex items-center gap-3 rounded-[22px] px-4 py-3 flex-1 min-w-[250px]">
+    <Search className="h-4 w-4 text-foreground/45" />
+    <input
+      value={query}
+      onChange={(event) => setQuery(event.target.value)}
+      placeholder="Search by product, base SKU, variant SKU, brand, category, or attribute value"
+      className="w-full border-none bg-transparent p-0 text-sm"
+    />
+  </label>
 
-          <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76">
-            <ArrowDownUp className="h-4 w-4 text-foreground/45" />
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="border-none bg-transparent p-0 pr-6 text-sm font-semibold "
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+  <div className="flex items-center gap-1 rounded-[22px] border border-border/70 bg-background p-1.5 shadow-sm">
+    <button
+      onClick={() => setViewMode("product")}
+      className={`flex items-center gap-2 rounded-[18px] px-4 py-2 text-sm font-semibold ${
+        viewMode === "product"
+          ? "bg-[#111] text-white"
+          : "text-foreground/55 hover:bg-foreground/5"
+      }`}
+    >
+      <LayoutGrid className="h-4 w-4" />
+      Group view
+    </button>
 
-          <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold text-foreground/76">
-            <ChevronsUpDown className="h-4 w-4 text-foreground/45" />
-            <select
-              value={pageSize}
-              onChange={(event) => setPageSize(Number(event.target.value))}
-              className="border-none bg-transparent p-0 pr-6 text-sm font-semibold"
-            >
-              {PAGE_SIZE_OPTIONS.map((value) => (
-                <option key={value} value={value}>
-                  {value} / page
-                </option>
-              ))}
-            </select>
-          </label>
+    <button
+      onClick={() => setViewMode("sku")}
+      className={`flex items-center gap-2 rounded-[18px] px-4 py-2 text-sm font-semibold ${
+        viewMode === "sku"
+          ? "bg-[#111] text-white"
+          : "text-foreground/55 hover:bg-foreground/5"
+      }`}
+    >
+      <Layers className="h-4 w-4" />
+      SKU view
+    </button>
+  </div>
 
-          <div className="flex items-center gap-1 rounded-[22px] border border-border/70 bg-background p-1.5 shadow-sm">
-            <button
-              onClick={() => setViewMode("product")}
-              className={`flex items-center gap-2 rounded-[18px] px-4 py-2 text-sm font-semibold transition-all ${
-                viewMode === "product"
-                  ? "bg-[#111] text-white shadow-md"
-                  : "text-foreground/55 hover:bg-foreground/5 hover:text-foreground"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4" />
-              <span>Group view</span>
-            </button>
-            <button
-              onClick={() => setViewMode("sku")}
-              className={`flex items-center gap-2 rounded-[18px] px-4 py-2 text-sm font-semibold transition-all ${
-                viewMode === "sku"
-                  ? "bg-[#111] text-white shadow-md"
-                  : "text-foreground/55 hover:bg-foreground/5 hover:text-foreground"
-              }`}
-            >
-              <Layers className="h-4 w-4" />
-              <span>SKU view</span>
-            </button>
-          </div>
-        </div>
+  <button
+    onClick={() => setFilterPanelOpen((c: boolean) => !c)}
+    className="inline-flex items-center gap-2 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold"
+  >
+    <SlidersHorizontal className="h-4 w-4" />
+    Filters
+  </button>
+
+  <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold">
+    <ArrowDownUp className="h-4 w-4" />
+    <select
+      value={sortBy}
+      onChange={(event) => setSortBy(event.target.value)}
+      className="bg-transparent border-none text-sm"
+    >
+      {SORT_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </label>
+
+  <label className="inline-flex items-center gap-3 rounded-[20px] border border-border/70 bg-background px-4 py-3 text-sm font-semibold">
+    <ChevronsUpDown className="h-4 w-4" />
+    <select
+      value={pageSize}
+      onChange={(event) => setPageSize(Number(event.target.value))}
+      className="bg-transparent border-none text-sm"
+    >
+      {PAGE_SIZE_OPTIONS.map((value) => (
+        <option key={value} value={value}>
+          {value} / page
+        </option>
+      ))}
+    </select>
+  </label>
+
+</div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <SummaryTile label="Visible products" value={String(visibleCount)} tone="neutral" />
