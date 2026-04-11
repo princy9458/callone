@@ -279,6 +279,7 @@ export const CartTable: React.FC<CartTableProps> = ({
                           item.isIndividualDiscount ? "translate-x-5" : "translate-x-0.5"
                         )}
                       />
+                      
                     </button>
                   </div>
  
