@@ -580,7 +580,7 @@ export function ProductCatalogWorkspace({
         <CatalogHeader
           badgeLabel={badgeLabel}
           title={title}
-          totalCount={products.length}
+          totalCount={viewMode === "product" ? products.length : normalizedRows.length}
           description={description}
           isSourceReadonly={isSourceReadonly}
           importHref={importHref}

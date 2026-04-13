@@ -134,7 +134,7 @@ export function CatalogHeader({
           <p className="max-w-4xl text-sm text-foreground/62">{description}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* <div className="flex flex-wrap items-center gap-2">
           {isSourceReadonly ? (
             <Link
               href={importHref}
@@ -164,7 +164,7 @@ export function CatalogHeader({
               {newProductLabel}
             </Link>
           ) : null}
-        </div>
+        </div> */}
       </div>
 
       <div className="space-y-4 px-4 py-4">

@@ -236,7 +236,7 @@ export function SkuTable({
                                   </span>
                                 </div>
                                 <p className="mt-1 text-xs text-foreground/52">
-                                  {row.name} · {row.subcategory || row.family || "Softgoods"}
+                                  {/* {row.name} · {row.subcategory || row.family || "Softgoods"} */}
                                 </p>
                                 {row.baseSku && (
                                   <p className="mt-2 line-clamp-1 text-xs text-foreground/45 italic">
@@ -345,7 +345,7 @@ export function SkuTable({
                                ) : (
                                  val.toString().split(',').map((v: string, i: number) => (
                                    <span key={i} className="rounded-2xl border border-border/70 bg-background px-2.5 py-1.5 text-xs text-foreground/66 shadow-sm">
-                                     {i === 0 && <span className="font-semibold text-foreground/74">{attr.label}:</span>}
+                                     {/* {i === 0 && <span className="font-semibold text-foreground/74">{attr.label}:</span>} */}
                                      {v.trim()}
                                    </span>
                                  ))
