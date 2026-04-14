@@ -12,18 +12,28 @@ export default function LoginPage() {
   const presets = [
     {
       label: "Super Admin",
-      email: defaultEmail,
+      email: "superadmin@callawaygolf.com",
+      description: "Full access to the workspace and operating controls.",
+    },
+    {
+      label: "Admin",
+      email: "rakesh.singh@callawaygolf.com",
       description: "Full access to the workspace and operating controls.",
     },
     {
       label: "Manager",
-      email: "manager@callone.local",
+      email: "mohit.chopra@callawaygolf.com",
       description: "Approvals, team visibility, and follow-up.",
     },
     {
       label: "Sales Rep",
-      email: "sales@callone.local",
+      email: "testsalesRep@gmail.com",
       description: "Order entry and daily sales activity.",
+    },
+    {
+      label: "Retailer",
+      email: "testretailer@gmail.com",
+      description: "Partner Retailer access.",
     },
   ];
 

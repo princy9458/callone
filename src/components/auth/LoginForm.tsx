@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Briefcase, Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck, UserCog } from "lucide-react";
 
 export function LoginForm({
@@ -19,6 +20,8 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/admin";
 
   useEffect(() => {
     setMounted(true);
@@ -40,7 +43,7 @@ export function LoginForm({
         return;
       }
 
-      window.location.href = "/admin";
+      window.location.href = callbackUrl;
     });
   };
 

@@ -199,12 +199,12 @@ export function AdminShell({children, user}: AdminShellProps) {
           ) : null}
         </AnimatePresence>
 
-        <header className="sticky inset-x-0 top-0 z-[1000] border-b border-white/5 bg-surface/60 backdrop-blur-xl">
+        <header className="sticky inset-x-0 top-0 z-[1000] border-b border-border bg-surface/60 backdrop-blur-xl">
           <div className="mx-auto flex h-[var(--admin-header-height)] items-center justify-between gap-4 px-6 sm:px-10">
             {/* Logo Section */}
             <div className="flex items-center gap-6">
               <button
-                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/50 transition hover:bg-white/10 hover:text-white md:hidden"
+                className="rounded-xl border border-border bg-surface-elevated/10 p-2 text-foreground/50 transition hover:bg-surface-elevated/20 hover:text-foreground md:hidden"
                 onClick={() => setMobileMenuOpen(true)}
               >
                 <Menu size={20} />
@@ -216,7 +216,7 @@ export function AdminShell({children, user}: AdminShellProps) {
                     alt="Callaway"
                     width={80}
                     height={44}
-                    className="h-auto w-full object-contain filter brightness-110"
+                    className="h-auto w-full object-contain filter brightness-110 dark:invert-0 invert"
                     priority
                   />
                 </div>
@@ -245,20 +245,20 @@ export function AdminShell({children, user}: AdminShellProps) {
                       initial={{opacity: 0, y: 10}}
                       animate={{opacity: 1, y: 0}}
                       exit={{opacity: 0, y: 10}}
-                      className="absolute left-0 top-full z-[100] mt-3 w-[min(980px,calc(100vw-48px))] overflow-hidden rounded-[28px] border border-white/10 bg-[#111111] p-4 shadow-[0_35px_100px_rgba(0,0,0,0.35)]"
+                      className="absolute left-0 top-full z-[100] mt-3 w-[min(980px,calc(100vw-48px))] overflow-hidden rounded-[28px] border border-border bg-surface p-4 shadow-[0_35px_100px_rgba(0,0,0,0.35)]"
                     >
-                      <div className="mb-4 flex items-end justify-between gap-3 border-b border-white/10 pb-4">
+                      <div className="mb-4 flex items-end justify-between gap-3 border-b border-border pb-4">
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/42">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/40">
                             Workspace
                           </p>
-                          <p className="mt-2 text-lg font-semibold text-white">
+                          <p className="mt-2 text-lg font-semibold text-foreground">
                             Fast module access
                           </p>
                         </div>
                         <button
                           onClick={() => setSearchOpen(true)}
-                          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
+                          className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground/60"
                         >
                           <Search size={14} />
                           Search
@@ -269,9 +269,9 @@ export function AdminShell({children, user}: AdminShellProps) {
                         {megaMenuGroups.map((group) => (
                           <div
                             key={group.title}
-                            className="rounded-[24px] border border-white/10 bg-white/4 p-3"
+                            className="rounded-[24px] border border-border bg-surface-elevated/20 p-3"
                           >
-                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/42">
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/40">
                               {group.title}
                             </p>
                             <div className="space-y-2">
@@ -318,13 +318,13 @@ export function AdminShell({children, user}: AdminShellProps) {
 
                   if (submenuItems.length) {
                     return (
-                      <div
-                        key={item.id}
-                        ref={openNavMenu === item.id ? navMenuRef : undefined}
-                        className="relative"
-                        onMouseEnter={() => setOpenNavMenu(item.id)}
-                        onMouseLeave={() => setOpenNavMenu((current) => (current === item.id ? null : current))}
-                      >
+                  <div
+                    key={item.id}
+                    ref={openNavMenu === item.id ? navMenuRef : undefined}
+                    className="relative"
+                    onMouseEnter={() => setOpenNavMenu(item.id)}
+                    onMouseLeave={() => setOpenNavMenu((current) => (current === item.id ? null : current))}
+                  >
                         <button
                           onClick={() =>
                             setOpenNavMenu((current) => (current === item.id ? null : item.id))
@@ -332,8 +332,8 @@ export function AdminShell({children, user}: AdminShellProps) {
                           className={clsx(
                             "group relative inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300",
                             isActive || openNavMenu === item.id
-                              ? "text-white"
-                              : "text-muted-foreground/60 hover:text-white"
+                              ? "text-foreground"
+                              : "text-muted-foreground/60 hover:text-foreground"
                           )}
                         >
                           <span className="relative z-10">{item.label}</span>
@@ -359,7 +359,7 @@ export function AdminShell({children, user}: AdminShellProps) {
                               initial={{opacity: 0, y: 10}}
                               animate={{opacity: 1, y: 0}}
                               exit={{opacity: 0, y: 10}}
-                              className="absolute left-0 top-full z-[100] mt-3 w-[360px] overflow-hidden rounded-[28px] border border-white/10 bg-[#111111] p-3 shadow-[0_30px_90px_rgba(0,0,0,0.34)]"
+                              className="absolute left-0 top-full z-[100] mt-3 w-[360px] overflow-hidden rounded-[28px] border border-border bg-surface p-3 shadow-[0_30px_90px_rgba(0,0,0,0.34)]"
                             >
                               <div className="border-b border-white/10 px-2 pb-3">
                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/42">
@@ -382,16 +382,16 @@ export function AdminShell({children, user}: AdminShellProps) {
                                       className={clsx(
                                         "flex items-start gap-3 rounded-[20px] border px-3 py-3 transition",
                                         childActive
-                                          ? "border-white/14 bg-white/10"
-                                          : "border-transparent bg-white/4 hover:border-white/10 hover:bg-white/8"
+                                          ? "border-border bg-surface-elevated"
+                                          : "border-transparent bg-surface-muted/50 hover:border-border hover:bg-surface-elevated"
                                       )}
                                     >
-                                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-white">
+                                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface-elevated text-foreground">
                                         <Icon size={16} />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-white">{submenuItem.label}</p>
-                                        <p className="mt-1 text-xs leading-5 text-white/56">
+                                        <p className="text-sm font-semibold text-foreground">{submenuItem.label}</p>
+                                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
                                           {submenuItem.description}
                                         </p>
                                       </div>
@@ -413,8 +413,8 @@ export function AdminShell({children, user}: AdminShellProps) {
                       className={clsx(
                         "group relative rounded-xl px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300",
                         isActive
-                          ? "text-white"
-                          : "text-muted-foreground/60 hover:text-white"
+                          ? "text-foreground"
+                          : "text-muted-foreground/60 hover:text-foreground"
                       )}
                     >
                       <span className="relative z-10">{item.label}</span>
@@ -438,7 +438,7 @@ export function AdminShell({children, user}: AdminShellProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-elevated/10 text-foreground/50 transition hover:bg-surface-elevated/20 hover:text-foreground"
                 aria-label="Open search"
               >
                 <Search size={16} />
@@ -446,7 +446,7 @@ export function AdminShell({children, user}: AdminShellProps) {
 
               <Link
                 href={`/admin/cart/${currentOrder?.orderNumber}`}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-elevated/10 text-foreground/50 transition hover:bg-surface-elevated/20 hover:text-foreground"
                 aria-label="Open cart"
               >
                 <ShoppingCart size={16} />
@@ -460,7 +460,7 @@ export function AdminShell({children, user}: AdminShellProps) {
               <motion.button
                 whileTap={{scale: 0.94}}
                 onClick={toggleTheme}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-elevated/10 text-foreground/50 transition hover:bg-surface-elevated/20 hover:text-foreground"
                 aria-label="Toggle theme"
               >
                 {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
@@ -469,7 +469,7 @@ export function AdminShell({children, user}: AdminShellProps) {
               <div ref={profileMenuRef} className="relative">
                 <button
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="group inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/5 pl-1 pr-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+                  className="group inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface-elevated/10 pl-1 pr-2 text-foreground/60 transition hover:bg-surface-elevated/20 hover:text-foreground"
                 >
                   <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/20 text-[10px] font-bold text-primary ring-1 ring-primary/30 group-hover:bg-primary group-hover:text-white group-hover:ring-primary/50 transition-all">
                     {getInitials(user.name)}
@@ -577,13 +577,13 @@ export function AdminShell({children, user}: AdminShellProps) {
             >
               <div className="mb-4 flex items-center justify-between">
                 <div className="min-w-0">
-                  <div className="mb-3 flex h-11 w-[108px] items-center justify-center rounded-2xl bg-white/4 px-3">
+                  <div className="mb-3 flex h-11 w-[108px] items-center justify-center rounded-2xl bg-surface-elevated/10 px-3">
                     <Image
                       src="/images/brands/callaway-logo-white.png"
                       alt="Callaway"
                       width={86}
                       height={48}
-                      className="h-auto w-full object-contain"
+                      className="h-auto w-full object-contain dark:invert-0 invert"
                     />
                   </div>
                   <p className="text-xs font-bold uppercase tracking-[0.4em] text-white/40">
@@ -675,8 +675,8 @@ export function AdminShell({children, user}: AdminShellProps) {
                     className={clsx(
                       "flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition",
                       matchesPath(pathname, item.href)
-                        ? "bg-white/14 text-white"
-                        : "text-white/72 hover:bg-white/8 hover:text-white"
+                        ? "bg-surface-elevated text-foreground"
+                        : "text-foreground/72 hover:bg-surface-elevated hover:text-foreground"
                     )}
                   >
                     <item.icon size={17} />
@@ -687,7 +687,7 @@ export function AdminShell({children, user}: AdminShellProps) {
                 <Link
                   href="/admin/orders"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-white/72 transition hover:bg-white/8 hover:text-white"
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-foreground/72 transition hover:bg-surface-elevated hover:text-foreground"
                 >
                   <ShoppingBag size={17} />
                   My Orders

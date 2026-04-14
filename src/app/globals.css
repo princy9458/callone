@@ -9,22 +9,23 @@
   :root {
     color-scheme: dark;
     --admin-header-height: 74px;
-    --background: #0f172a;
-    --foreground: #f9fafb;
-    --surface: #111827;
-    --surface-muted: #1f2937;
-    --surface-elevated: #374151;
-    --surface-strong: #4b5563;
-    --primary: #6366f1;
-    --primary-rgb: 99, 102, 241;
-    --primary-strong: #4f46e5;
-    --border: rgba(31, 41, 55, 0.5);
-    --ring: rgba(99, 102, 241, 0.2);
-    --accent: #6366f1;
-    --muted: #9ca3af;
-    --success: #22c55e;
+    --background: #ebebef;
+    --foreground: #2c2d2d;
+    --surface: #ffffff;
+    --surface-muted: #f7f7f8;
+    --surface-elevated: #d3d2d0;
+    --surface-strong: #949797;
+    --primary: #2f7ff4;
+    --primary-rgb: 47, 127, 244;
+    --primary-strong: #1964d3;
+    --border: #d3d2d0;
+    --ring: rgba(47, 127, 244, 0.18);
+    --accent: #606260;
+    --muted: #606260;
+    --muted-foreground: #6b7280;
+    --success: #1aa661;
     --warning: #f59e0b;
-    --danger: #ef4444;
+    --danger: #d44545;
   }
 
   .dark {
@@ -40,7 +41,8 @@
     --border: rgba(31, 41, 55, 0.8);
     --ring: rgba(99, 102, 241, 0.25);
     --accent: #6366f1;
-    --muted: #9ca3af;
+    --muted: #1f2937;
+    --muted-foreground: #9ca3af;
     --success: #22c55e;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -60,11 +62,15 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   background-image: 
-    radial-gradient(circle at top left, rgba(99, 102, 241, 0.05), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.03), transparent 30%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+       radial-gradient(circle at top left, rgba(47, 127, 244, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 34%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 72px,
+      rgba(44, 45, 45, 0.028) 72px,
+      rgba(44, 45, 45, 0.028) 73px
+    );
 }
 
 a,
@@ -98,15 +104,15 @@ textarea:focus {
 }
 
 .glass {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+   background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
 }
 
 .glass-panel {
-  background: rgba(17, 24, 39, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(24px);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
 }
 
 .premium-card {
@@ -128,11 +134,11 @@ textarea:focus {
 }
 
 .premium-toolbar {
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  box-shadow: 0 14px 28px rgba(10, 10, 10, 0.06);
+  backdrop-filter: blur(18px);
+  border-radius: 26px;
 }
 
 .premium-search {

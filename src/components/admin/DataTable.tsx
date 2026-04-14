@@ -23,7 +23,7 @@ export function DataTable({headers, children}: DataTableProps) {
                 return (
                   <th
                     key={`${label}-${index}`}
-                    className="sticky z-20 whitespace-nowrap border-b border-border bg-surface-muted/80 px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70 backdrop-blur-md"
+                    className="sticky z-20 whitespace-nowrap border-b border-border bg-surface-muted/80 px-5 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground backdrop-blur-md"
                     style={{top: 0}}
                   >
                     <div className="flex flex-col gap-2">

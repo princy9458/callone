@@ -12,11 +12,25 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        surface: "var(--surface)",
-        primary: "var(--primary)",
+        surface: {
+          DEFAULT: "var(--surface)",
+          muted: "var(--surface-muted)",
+          elevated: "var(--surface-elevated)",
+          strong: "var(--surface-strong)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          strong: "var(--primary-strong)",
+        },
         border: "var(--border)",
         success: "var(--success)",
         danger: "var(--danger)",
+        warning: "var(--warning)",
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: "var(--accent)",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
