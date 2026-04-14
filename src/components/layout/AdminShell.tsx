@@ -199,24 +199,24 @@ export function AdminShell({children, user}: AdminShellProps) {
           ) : null}
         </AnimatePresence>
 
-        <header className="sticky left-0 right-0 top-0 z-[999] border-b border-white/10 bg-black/80 text-white backdrop-blur-xl px-4 sm:px-10">
-          <div className="mx-auto flex h-[74px] items-center justify-between gap-4">
+        <header className="sticky inset-x-0 top-0 z-[1000] border-b border-white/5 bg-surface/60 backdrop-blur-xl">
+          <div className="mx-auto flex h-[var(--admin-header-height)] items-center justify-between gap-4 px-6 sm:px-10">
             {/* Logo Section */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <button
-                className="rounded-2xl border border-white/12 bg-white/6 p-2.5 text-white/72 transition hover:text-white md:hidden"
+                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/50 transition hover:bg-white/10 hover:text-white md:hidden"
                 onClick={() => setMobileMenuOpen(true)}
               >
-                <Menu size={18} />
+                <Menu size={20} />
               </button>
-              <Link href="/admin" className="flex items-center gap-3">
-                <div className="flex h-12 w-[112px] items-center justify-center rounded-2xl bg-white/4 px-3 shadow-inner">
+              <Link href="/admin" className="group flex items-center gap-3">
+                <div className="flex h-11 w-[100px] items-center justify-center rounded-xl bg-white/5 px-2.5 transition-all duration-500 group-hover:bg-white/10 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]">
                   <Image
                     src="/images/brands/callaway-logo-white.png"
                     alt="Callaway"
-                    width={90}
-                    height={50}
-                    className="h-auto w-full object-contain"
+                    width={80}
+                    height={44}
+                    className="h-auto w-full object-contain filter brightness-110"
                     priority
                   />
                 </div>
@@ -330,16 +330,26 @@ export function AdminShell({children, user}: AdminShellProps) {
                             setOpenNavMenu((current) => (current === item.id ? null : item.id))
                           }
                           className={clsx(
-                            "inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold tracking-[0.02em] transition",
+                            "group relative inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300",
                             isActive || openNavMenu === item.id
-                              ? "bg-white/14 text-white"
-                              : "text-white/72 hover:bg-white/8 hover:text-white"
+                              ? "text-white"
+                              : "text-muted-foreground/60 hover:text-white"
                           )}
                         >
-                          {item.label}
+                          <span className="relative z-10">{item.label}</span>
+                          {(isActive || openNavMenu === item.id) && (
+                            <motion.div
+                              layoutId="nav-glow"
+                              className="absolute inset-0 z-0 rounded-xl bg-primary/20 shadow-[0_0_15px_rgba(99,102,241,0.3)] ring-1 ring-primary/40"
+                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                          )}
+                          {!isActive && openNavMenu !== item.id && (
+                            <div className="absolute inset-x-4 bottom-0 h-[2px] scale-x-0 bg-primary/40 transition-transform duration-300 group-hover:scale-x-100" />
+                          )}
                           <ChevronDown
-                            size={16}
-                            className={openNavMenu === item.id ? "rotate-180 transition" : "transition"}
+                            size={14}
+                            className={clsx("relative z-10 transition-transform duration-300", openNavMenu === item.id && "rotate-180")}
                           />
                         </button>
 
@@ -401,13 +411,23 @@ export function AdminShell({children, user}: AdminShellProps) {
                       key={item.href}
                       href={item.href}
                       className={clsx(
-                        "rounded-2xl px-4 py-2.5 text-sm font-semibold tracking-[0.02em] transition",
+                        "group relative rounded-xl px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-300",
                         isActive
-                          ? "bg-white/14 text-white"
-                          : "text-white/72 hover:bg-white/8 hover:text-white"
+                          ? "text-white"
+                          : "text-muted-foreground/60 hover:text-white"
                       )}
                     >
-                      {item.label}
+                      <span className="relative z-10">{item.label}</span>
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-glow"
+                          className="absolute inset-0 z-0 rounded-xl bg-primary/20 shadow-[0_0_15px_rgba(99,102,241,0.3)] ring-1 ring-primary/40"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      {!isActive && (
+                        <div className="absolute inset-x-4 bottom-0 h-[2px] scale-x-0 bg-primary/40 transition-transform duration-300 group-hover:scale-x-100" />
+                      )}
                     </Link>
                   );
                 })}
@@ -415,23 +435,23 @@ export function AdminShell({children, user}: AdminShellProps) {
             </div>
 
             {/* User Actions Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/70 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
                 aria-label="Open search"
               >
-                <Search size={17} />
+                <Search size={16} />
               </button>
 
               <Link
                 href={`/admin/cart/${currentOrder?.orderNumber}`}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/70 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
                 aria-label="Open cart"
               >
-                <ShoppingCart size={17} />
+                <ShoppingCart size={16} />
                 {items.length > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-white ring-2 ring-surface">
                     {items.length}
                   </span>
                 )}
@@ -440,23 +460,23 @@ export function AdminShell({children, user}: AdminShellProps) {
               <motion.button
                 whileTap={{scale: 0.94}}
                 onClick={toggleTheme}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white/70 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
                 aria-label="Toggle theme"
               >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
               </motion.button>
 
               <div ref={profileMenuRef} className="relative">
                 <button
                   onClick={() => setProfileMenuOpen((current) => !current)}
-                  className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-2.5 text-white/80 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+                  className="group inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/5 pl-1 pr-2 text-white/60 transition hover:bg-white/10 hover:text-white"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-semibold uppercase">
+                  <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/20 text-[10px] font-bold text-primary ring-1 ring-primary/30 group-hover:bg-primary group-hover:text-white group-hover:ring-primary/50 transition-all">
                     {getInitials(user.name)}
                   </div>
                   <ChevronDown
-                    size={15}
-                    className={profileMenuOpen ? "rotate-180 transition" : "transition"}
+                    size={14}
+                    className={clsx("transition-transform duration-300", profileMenuOpen && "rotate-180")}
                   />
                 </button>
 
@@ -686,23 +706,24 @@ export function AdminShell({children, user}: AdminShellProps) {
         </AnimatePresence>
 
         <div className="relative">
-          <div className="relative h-[244px] overflow-hidden bg-[#111111] text-white">
+          <div className="relative h-[200px] overflow-hidden bg-surface text-white">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeHeroSlide.id}
                 initial={{opacity: 0}}
                 animate={{opacity: 1}}
                 exit={{opacity: 0}}
-                transition={{duration: 0.5, ease: "easeOut"}}
+                transition={{duration: 0.8, ease: "easeOut"}}
                 className="absolute inset-0"
                 style={{
-                  backgroundImage: `linear-gradient(180deg,rgba(10,10,10,0.18),rgba(10,10,10,0.72)),url(${activeHeroSlide.image})`,
+                  backgroundImage: `linear-gradient(to bottom, transparent, var(--background)), url(${activeHeroSlide.image})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(255,255,255,0.18),transparent_24%),linear-gradient(90deg,rgba(10,10,10,0.22),rgba(10,10,10,0.58)_52%,rgba(10,10,10,0.82))]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(99,102,241,0.15),transparent_40%)]" />
 
             <div
               className={clsx(

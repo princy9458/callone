@@ -88,31 +88,31 @@ export const PremiumSelect: React.FC<PremiumSelectProps> = ({
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={clsx(
-          'flex h-[40px] w-full items-center justify-between rounded-xl border transition-all outline-none',
+          'flex h-[44px] w-full items-center justify-between rounded-xl border transition-all duration-300 outline-none',
           'px-5 py-3 text-[13px] font-bold text-foreground',
           isOpen 
-            ? 'border-primary/40 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)]' 
-            : 'border-foreground/[0.08] bg-white/50 backdrop-blur-sm hover:border-foreground/20 hover:bg-white/80',
+            ? 'border-primary bg-surface shadow-[0_0_0_4px_rgba(99,102,241,0.1)]' 
+            : 'border-border bg-surface-muted/30 backdrop-blur-sm hover:border-primary/50 hover:bg-surface-muted/50',
           disabled && 'opacity-50 cursor-not-allowed',
           triggerClassName
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden">
-          {icon && <div className={clsx("shrink-0", isOpen ? "text-primary" : "text-foreground/30")}>{icon}</div>}
-          <span className={clsx('truncate transition-colors', !selectedOption && 'text-foreground/30')}>
+          {icon && <div className={clsx("shrink-0 transition-colors duration-300", isOpen ? "text-primary" : "text-muted-foreground/40")}>{icon}</div>}
+          <span className={clsx('truncate transition-colors duration-300', !selectedOption && 'text-muted-foreground/30')}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <div className="flex items-center gap-2">
           {isOpen && (
-             <motion.div 
-               layoutId="focus-bar"
-               className="h-4 w-[2px] rounded-full bg-primary"
-             />
+            <motion.div 
+              layoutId="focus-bar"
+              className="h-4 w-[2px] rounded-full bg-primary shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+            />
           )}
           <ChevronDown 
             size={16} 
-            className={clsx('shrink-0 text-foreground/20 transition-all duration-300', isOpen && 'rotate-180 text-primary')} 
+            className={clsx('shrink-0 text-muted-foreground/20 transition-all duration-300', isOpen && 'rotate-180 text-primary')} 
           />
         </div>
       </button>

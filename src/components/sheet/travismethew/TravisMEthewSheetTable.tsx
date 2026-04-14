@@ -4,6 +4,7 @@ import { Loader2, Package2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/components/admin/DataTable";
 import { RootState } from "@/store";
+import { ProductImage } from "@/components/admin/ProductImage";
 import { ITravisMethewSheetItem } from "@/store/slices/sheet/travismethew/TravisMethewSheetType";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
@@ -13,6 +14,7 @@ import {
   SelectionFilter, 
   FloatingFilterPopup 
 } from "./ColumnFilters";
+import { convertOffsetToTimes } from "framer-motion";
 
 type SheetColumnKey = keyof ITravisMethewSheetItem | "index";
 
@@ -74,12 +76,35 @@ function getRowValue(row: ITravisMethewSheetItem, key: string) {
   return undefined;
 }
 
+function getBaseSku(sku: unknown): string {
+  if (!sku) return "";
+  const s = String(sku).trim();
+  const parts = s.split("_");
+  if (parts.length >= 2) {
+    return `${parts[0]}_${parts[1]}`;
+  }
+  return s;
+}
+
 export default function TravisMEthewSheetTable() {
   const { allTravisSheet, isLoading, error } = useSelector((state: RootState) => state.travisSheet);
   const { allAttribute } = useSelector((state: RootState) => state.attribute);
 
+  const {travismathew}= useSelector((state:RootState)=>state.travisMathew)
   const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilterData>>({});
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+
+  const travisMathewMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (Array.isArray(travismathew)) {
+      travismathew.forEach(item => {
+        if (item.sku) {
+          map.set(getBaseSku(item.sku).toUpperCase(), item);
+        }
+      });
+    }
+    return map;
+  }, [travismathew]);
 
   const handleToggleRow = useCallback((key: string) => {
     setSelectedKeys(prev => {
@@ -177,6 +202,7 @@ export default function TravisMEthewSheetTable() {
         key: "selection" as any 
       },
       { label: "#", key: "index" as SheetColumnKey }, 
+      { label: "Image", key: "image" as any },
       ...rawCols
     ];
 
@@ -268,7 +294,7 @@ export default function TravisMEthewSheetTable() {
           </tr>
         ) : filteredRows.length > 0 ? (
           filteredRows.map((row, index) => {
-            const rowKey = row.SKU || row.Option || String(index);
+            const rowKey = `${row.SKU || row.Option || 'row'}-${index}`;
 
             return (
               <tr key={rowKey}>
@@ -294,13 +320,36 @@ export default function TravisMEthewSheetTable() {
                     );
                   }
 
+                  if (column.key === "image" as any) {
+                    const skuValue = getRowValue(row, "SKU");
+                    console.log("skuiiiii",skuValue)
+                      const currentSku= travismathew.find((item)=>item.sku===skuValue)
+                       console.log("currentSku",currentSku)
+                      
+                    return (
+                      <td key={`${skuValue}-image`} className="whitespace-nowrap border-b border-border/40 px-4 py-3 align-top">
+                        {currentSku ? (
+                          <ProductImage
+                            brandName="Travis Mathew"
+                            rowData={currentSku}
+                            className="h-11 w-11 shadow-lg shadow-black/20"
+                          />
+                        ) : (
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1D1D1D] text-[10px] font-bold uppercase tracking-wider text-white/20 ring-1 ring-white/5">
+                            No Img
+                          </div>
+                        )}
+                      </td>
+                    );
+                  }
+
                   const value = getRowValue(row, column.key);
                   const cellValue = formatSheetValue(column.key, value);
                   const isDescription = column.key === "desc";
 
                   return (
                     <td
-                      key={`${rowKey}-${column.key}`}
+                      key={`${rowKey}-${column.key}--12`}
                       className="whitespace-nowrap border-b border-border/40 px-4 py-3 align-top text-sm text-foreground/80"
                     >
                       <span

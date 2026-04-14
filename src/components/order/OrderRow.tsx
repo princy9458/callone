@@ -106,7 +106,7 @@ export const OrderRow = ({ order, retailers, managers }: OrderRowProps) => {
           </div>
         </td>
         <td className="px-6 py-5">
-          <span className="inline-flex items-center rounded-lg bg-rose-500/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-rose-500 border border-rose-500/10">
+          <span className="inline-flex items-center rounded-full bg-danger/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-danger border border-danger/10">
              ₹{(order.discountAmount || (order as any).pricing?.discountAmount || 0).toLocaleString()}
           </span>
         </td>
@@ -115,45 +115,45 @@ export const OrderRow = ({ order, retailers, managers }: OrderRowProps) => {
         </td>
         <td className="px-6 py-5">
           <span className={clsx(
-            "inline-flex rounded-lg px-3 py-1.5 text-[14px] font-semibold text-foreground tracking-[0] border",
+            "inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider border",
             order.status === "completed" 
-              ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/20" 
-              : "bg-amber-500/5 text-amber-500 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+              ? "bg-success/10 text-success border-success/20" 
+              : "bg-warning/10 text-warning border-warning/20 shadow-sm shadow-warning/5"
           )}>
             {order.status || "pending"}
           </span>
         </td>
         <td className="px-6 py-5 text-right">
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2">
             <div className="group/action relative">
               <button 
                 onClick={() => downloadOrderExcel(order, retailers, managers)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-muted/50 text-muted-foreground/40 transition-all hover:bg-success hover:text-white hover:border-success"
               >
-                <FileSpreadsheet size={16} />
+                <FileSpreadsheet size={14} />
               </button>
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
-                <span className="rounded bg-[#111111] px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white">Excel</span>
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
+                <span className="rounded bg-surface-muted border border-border px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-foreground">Excel</span>
               </div>
             </div>
 
             <div className="group/action relative">
               <button 
                 onClick={() => downloadOrderPDF(order, retailers, managers, allSaleRep)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-muted/50 text-muted-foreground/40 transition-all hover:bg-danger hover:text-white hover:border-danger"
               >
-                <FileText size={16} />
+                <FileText size={14} />
               </button>
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
-                <span className="rounded bg-[#111111] px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white">PDF</span>
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 scale-50 opacity-0 transition-all group-hover/action:scale-100 group-hover/action:opacity-100">
+                <span className="rounded bg-surface-muted border border-border px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-foreground">PDF</span>
               </div>
             </div>
 
             <button 
               onClick={() => handleOrderEdit(order)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/40 bg-foreground/[0.02] text-foreground/30 transition-all hover:bg-[#111111] hover:text-white dark:hover:bg-primary"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-muted/50 text-muted-foreground/40 transition-all hover:bg-primary hover:text-white hover:border-primary"
             >
-              <Edit3 size={16} />
+              <Edit3 size={14} />
             </button>
           </div>
         </td>
@@ -171,10 +171,10 @@ export const OrderRow = ({ order, retailers, managers }: OrderRowProps) => {
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mx-6 mb-6 mt-2 rounded-[24px] border border-border/20 bg-white/40 dark:bg-white/[0.02] p-8 shadow-inner backdrop-blur-xl">
-                    <div className="mb-4 flex items-center justify-between border-b border-border/10 pb-4">
-                       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-foreground/20 italic">Order Manifest Archive</h4>
-                       <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                <div className="mx-6 mb-6 mt-2 rounded-[16px] border border-border/10 bg-surface-muted/30 p-8 shadow-inner backdrop-blur-xl">
+                    <div className="mb-4 flex items-center justify-between border-b border-border/5 pb-4">
+                       <h4 className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground/30">Order Manifest Archive</h4>
+                       <div className="h-1.5 w-1.5 rounded-full bg-primary shadow shadow-primary/50 animate-pulse" />
                     </div>
                    <OrderItemsTable items={order.items || []} />
                 </div>

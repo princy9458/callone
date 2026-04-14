@@ -53,7 +53,7 @@ export const OrderList = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Command Hub Navigation */}
-      <div className="flex w-fit items-center rounded-[20px] border border-border/40 bg-[#111111]/[0.02] p-1.5 shadow-sm backdrop-blur-sm">
+      <div className="flex w-fit items-center rounded-2xl border border-border/10 bg-surface-muted/30 p-1.5 backdrop-blur-md">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -62,16 +62,15 @@ export const OrderList = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               className={clsx(
-                "group relative flex items-center gap-2.5 rounded-[14px] px-6 py-3 transition-all duration-300 active:scale-[0.96]",
-                isActive ? "text-white" : "text-[#111111]/40 hover:text-[#111111]/60"
+                "group relative flex items-center gap-3 rounded-xl px-6 py-2.5 transition-all duration-300",
+                isActive ? "text-white" : "text-muted-foreground/60 hover:text-foreground hover:bg-white/5"
               )}
             >
-              {/* Sliding Active Pod */}
               {isActive && (
                 <motion.div
                   layoutId="activeTabPod"
-                  className="absolute inset-0 z-0 rounded-[14px] bg-[#111111] shadow-[0_8px_20px_rgba(0,0,0,0.15)]"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  className="absolute inset-0 z-0 rounded-xl bg-primary shadow-lg shadow-primary/20"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
 
@@ -79,10 +78,10 @@ export const OrderList = () => {
                 size={16} 
                 className={clsx(
                   "relative z-10 transition-colors duration-300",
-                  isActive ? "text-primary" : "text-[#111111]/20 group-hover:text-[#111111]/40"
+                  isActive ? "text-white" : "text-muted-foreground/30 group-hover:text-muted-foreground/60"
                 )} 
               />
-              <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.15em]">
+              <span className="relative z-10 text-[10px] font-bold uppercase tracking-[0.15em]">
                 {tab.label}
               </span>
             </button>
@@ -107,13 +106,13 @@ export const OrderList = () => {
           <div className="flex items-center gap-4">
             {/* Search Bar */}
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/20 transition-colors group-focus-within:text-primary" size={16} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 transition-colors group-focus-within:text-primary" size={16} />
               <input
                 type="text"
-                placeholder="Search by ID or Number..."
+                placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-11 w-64 rounded-2xl border border-border/40 bg-foreground/[0.02] pl-12 pr-4 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/40 focus:bg-white dark:focus:bg-white/5 placeholder:text-foreground/20"
+                className="h-10 w-64 rounded-xl border border-border bg-surface-muted/50 pl-11 pr-4 text-[13px] font-medium text-foreground outline-none transition-all focus:border-primary/50 focus:bg-surface-muted placeholder:text-muted-foreground/30"
               />
             </div>
 

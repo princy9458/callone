@@ -12,17 +12,26 @@ export function StatCard({
   icon: LucideIcon;
 }) {
   return (
-    <div className="group premium-card rounded-[24px] p-4 transition duration-200 hover:-translate-y-1 hover:shadow-[0_26px_58px_rgba(10,10,10,0.14)]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/45">{label}</p>
-          <p className="mt-3 text-[2rem] font-semibold tracking-tight text-foreground">{value}</p>
+    <div className="group premium-card p-6 transition-all duration-300">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+            {label}
+          </p>
+          <p className="text-3xl font-bold tracking-tight text-foreground">
+            {value}
+          </p>
         </div>
-        <div className="rounded-2xl bg-primary/10 p-2.5 text-primary transition group-hover:scale-105 group-hover:bg-primary/14">
-          <Icon size={18} />
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+          <Icon size={20} />
         </div>
       </div>
-      {hint ? <p className="mt-3 text-xs leading-5 text-foreground/55">{hint}</p> : null}
+      {hint ? (
+        <div className="mt-4 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/50">
+          <span className="h-1 w-1 rounded-full bg-primary/40" />
+          {hint}
+        </div>
+      ) : null}
     </div>
   );
 }
