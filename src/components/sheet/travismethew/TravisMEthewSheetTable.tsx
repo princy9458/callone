@@ -165,7 +165,7 @@ export default function TravisMEthewSheetTable() {
   const handleToggleAll = useCallback(() => {
     setSelectedKeys(prev => {
       if (prev.size === filteredRows.length && filteredRows.length > 0) return new Set();
-      return new Set(filteredRows.map((row, index) => row.SKU || row.Option || String(index)));
+      return new Set(filteredRows.map((row, index) => `${row.SKU || row.Option || 'row'}-${index}`));
     });
   }, [filteredRows]);
 
@@ -182,7 +182,7 @@ export default function TravisMEthewSheetTable() {
   const columns = useMemo(() => {
     const rawCols = currentAttribute?.attributes && currentAttribute.attributes.length > 0
       ? currentAttribute.attributes
-          .filter((attr) => attr.show !== false && attr.key !== "index" && attr.label !== "#")
+          .filter((attr) => attr.show !== false && attr.key !== "index" && attr.label !== "#" && attr.key?.toLowerCase() !== "image" && attr.label?.toLowerCase() !== "image")
           .map((attr) => ({
             label: attr.label || attr.key || "",
             key: (attr.key || "") as SheetColumnKey,
@@ -327,7 +327,7 @@ export default function TravisMEthewSheetTable() {
                        console.log("currentSku",currentSku)
                       
                     return (
-                      <td key={`${skuValue}-image`} className="whitespace-nowrap border-b border-border/40 px-4 py-3 align-top">
+                      <td key={`${rowKey}-image`} className="whitespace-nowrap border-b border-border/40 px-4 py-3 align-top">
                         {currentSku ? (
                           <ProductImage
                             brandName="Travis Mathew"

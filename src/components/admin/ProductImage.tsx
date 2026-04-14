@@ -23,7 +23,7 @@ export function ProductImage({ brandName, rowData, alt = "Product Image", classN
     // Get the raw image source and filename
     const rawUrl = rowData?.primary_url || rowData?.primary_image_url;
     const skuValue = rowData?.sku || rowData?.baseSku;
-
+  console.log("rowData", rowData)
     if (!rawUrl) return;
 
     // 1. If it's already an absolute URL or starts with /, use it directly
@@ -46,6 +46,7 @@ export function ProductImage({ brandName, rowData, alt = "Product Image", classN
   }, [brandName, rowData, s3_url, s3_url_ogio]);
 
   const displaySrc = primaryImage;
+  console.log("displaySrc", displaySrc)
 
   if (!displaySrc || error) {
     return (

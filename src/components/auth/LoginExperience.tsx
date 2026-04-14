@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -120,11 +120,13 @@ export function LoginExperience({
               </p>
             </div>
 
-            <LoginForm
-              defaultEmail={defaultEmail}
-              defaultPasswordHint={defaultPasswordHint}
-              presets={presets}
-            />
+            <Suspense fallback={<div className="h-64 animate-pulse bg-black/5 dark:bg-white/5 rounded-xl" />}>
+              <LoginForm
+                defaultEmail={defaultEmail}
+                defaultPasswordHint={defaultPasswordHint}
+                presets={presets}
+              />
+            </Suspense>
 
             <div className="mt-8 text-center lg:text-left">
               <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30 dark:text-foreground/50 hover:text-primary transition-colors cursor-pointer border-b border-transparent hover:border-primary/30 pb-1">

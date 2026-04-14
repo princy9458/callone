@@ -3,7 +3,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import dbConnect from "@/lib/db/connection";
 import { ensureSystemBootstrap } from "@/lib/auth/bootstrap";
-import { ROLE_PERMISSIONS, type RoleKey } from "@/lib/auth/permissions";
+import { ROLE_PERMISSIONS, type RoleKey, normalizeRole } from "@/lib/auth/permissions";
 import { Role } from "@/lib/db/models/Role";
 import { User } from "@/lib/db/models/User";
 
@@ -124,23 +124,32 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           return null;
         }
-        console.log("user login ", user)
-        const passwordMatches = user.password_hash
+        const isNewHashMatch = user.new_hash_password 
+          ? await bcrypt.compare(credentials.password, user.new_hash_password)
+          : false;
+
+        const isLegacyPlainMatch = user.password_hash 
           ? credentials.password === user.password_hash
-          : await bcrypt.compare(credentials.password, user.passwordHash);
+          : false;
+
+        const isStandardHashMatch = user.passwordHash 
+          ? await bcrypt.compare(credentials.password, user.passwordHash)
+          : false;
+
+        const passwordMatches = isNewHashMatch || isLegacyPlainMatch || isStandardHashMatch;
 
         if (!passwordMatches) {
           return null;
         }
-        console.log("passwordMatches ", passwordMatches)
-        // const role = await Role.findById(user.roleId).lean();
+
+        const normalizedRole = normalizeRole(user.role);
 
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: user.role,
-          permissions: user.permissions,
+          role: normalizedRole,
+          permissions: user.permissions || ROLE_PERMISSIONS[normalizedRole],
         };
       },
     }),
