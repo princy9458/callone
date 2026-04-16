@@ -22,6 +22,13 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "CallawayOne | Admin",
   description: "B2B Enterprise Order Management System",
+  icons: {
+    icon: [
+      { url: "/images/brands/callaway-favicon.png", type: "image/png" },
+    ],
+    shortcut: "/images/brands/callaway-favicon.png",
+    apple: "/images/brands/callaway-favicon.png",
+  },
 };
 
 export default function RootLayout({

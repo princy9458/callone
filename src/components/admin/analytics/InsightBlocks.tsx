@@ -1,3 +1,6 @@
+"use client";
+
+import React from "react";
 import type {BreakdownItem, BrandCatalogInsight, LeaderboardItem, TrendPoint} from "@/lib/admin/insights";
 
 function currency(value: number) {
@@ -15,21 +18,6 @@ function compactNumber(value: number) {
   }).format(value);
 }
 
-function toneClasses(tone?: BreakdownItem["tone"]) {
-  switch (tone) {
-    case "emerald":
-      return "bg-foreground/10 text-foreground/86";
-    case "amber":
-      return "bg-foreground/10 text-foreground/86";
-    case "rose":
-      return "bg-foreground/10 text-foreground/86";
-    case "blue":
-      return "bg-foreground/10 text-foreground/86";
-    default:
-      return "bg-foreground/10 text-foreground/80";
-  }
-}
-
 export function InsightMetricCard({
   label,
   value,
@@ -45,41 +33,32 @@ export function InsightMetricCard({
   image?: string;
   accent?: string;
 }) {
-  const isDarkAccent = accent && (
-    accent.toLowerCase().startsWith('#00') || 
-    accent.toLowerCase().startsWith('#11') || 
-    accent.toLowerCase().startsWith('#0b') || 
-    accent.toLowerCase().startsWith('#1a') || 
-    accent.toLowerCase().startsWith('#4b')
-  );
-  
-  const textClass = accent ? (isDarkAccent ? "text-white" : "text-black") : "text-foreground";
-  const mutedClass = accent ? (isDarkAccent ? "text-white/60" : "text-black/60") : "text-muted";
+  // Use dark text for all colored (pastel) cards as per user reference
+  const textClass = accent ? "text-[#0B0B0B]" : "text-foreground";
+  const mutedClass = accent ? "text-[#0B0B0B]/60" : "text-muted";
 
   return (
     <div 
-      className="group premium-card p-6"
+      className="group premium-card p-6 relative overflow-hidden"
       style={{
         backgroundColor: accent || "var(--premium-card-bg)",
         backgroundImage: accent ? 'none' : undefined,
-        borderColor: accent ? "rgba(0,0,0,0.08)" : "var(--premium-card-border)"
       }}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between relative z-10">
         <div className="space-y-1.5">
           <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}>
             {label}
           </p>
-          <p className={`text-3xl font-bold tracking-tight ${textClass} sm:text-4xl`}>
+          <p className={`text-3xl font-black tracking-tight ${textClass} sm:text-4xl`}>
             {value}
           </p>
         </div>
         {(Icon || image) && (
           <div 
-            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/5 transition duration-400 group-hover:scale-110"
+            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/5 transition duration-500 group-hover:scale-110 bg-white/40"
             style={{ 
-              backgroundColor: accent ? (isDarkAccent ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)") : "var(--control-bg)",
-              color: accent ? (isDarkAccent ? "#FFFFFF" : "#000000") : "var(--foreground)"
+              color: accent ? "rgba(0,0,0,0.8)" : "var(--foreground)"
             }}
           >
             {image ? (
@@ -90,7 +69,7 @@ export function InsightMetricCard({
           </div>
         )}
       </div>
-      <p className={`mt-4 text-sm leading-relaxed ${mutedClass}`}>{detail}</p>
+      <p className={`mt-4 text-xs font-medium leading-relaxed opacity-80 relative z-10 ${mutedClass}`}>{detail}</p>
     </div>
   );
 }
@@ -152,24 +131,24 @@ export function TrendCard({
         <svg viewBox="0 0 100 76" className="h-52 w-full">
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+              <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#2DD4BF" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path d={areaPath} fill={`url(#${gradientId})`} />
           <path
             d={linePath}
             fill="none"
-            stroke="#10B981"
+            stroke="#2DD4BF"
             strokeWidth="2.5"
             strokeLinejoin="round"
             strokeLinecap="round"
           />
         </svg>
 
-          <div className="mt-3 grid gap-2 md:grid-cols-4 xl:grid-cols-8">
-            {points.map((point) => (
-            <div key={point.label} className="rounded-xl border border-border bg-surface-muted/50 px-3 py-2 text-center">
+        <div className="mt-3 grid gap-2 md:grid-cols-4 xl:grid-cols-8">
+          {points.map((point) => (
+            <div key={point.label} className="rounded-xl border border-border bg-surface-muted/50 px-3 py-2 text-center transition-all hover:bg-surface-elevated">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                 {point.label}
               </p>
@@ -212,9 +191,9 @@ export function BreakdownCard({
                   {item.value}
                 </span>
               </div>
-              <div className="mt-2.5 h-1.5 rounded-full bg-foreground/5">
+              <div className="mt-2.5 h-1.5 rounded-full bg-foreground/5 overflow-hidden">
                 <div
-                  className={`h-1.5 rounded-full ${item.tone ? "bg-primary" : "bg-muted/30"}`}
+                  className="h-full rounded-full bg-[#2DD4BF] transition-all duration-1000"
                   style={{width: `${(item.value / maxValue) * 100}%`}}
                 />
               </div>
@@ -292,32 +271,56 @@ export function BrandCatalogCard({
       <p className="text-base font-semibold tracking-tight text-foreground">{title}</p>
       <p className="mt-1 text-sm text-foreground/62">{description}</p>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         {items.length ? (
           items.map((item) => (
             <div key={item.label} className="rounded-xl border border-border bg-surface p-4 transition duration-300 hover:bg-surface-muted">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted">{item.label}</p>
-              <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-4 text-center">
-                <div className="flex-1">
-                  <p className="text-xl font-bold tracking-tight text-foreground">{item.products}</p>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Items</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted pb-3 border-b border-border/10 mb-4">{item.label}</p>
+              <div className="grid grid-cols-3 gap-0 text-center">
+                <div className="px-1">
+                  <p className="text-base font-black tracking-tighter text-foreground sm:text-lg">{item.products}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted/60 mt-0.5">Items</p>
                 </div>
-                <div className="flex-1 border-x border-border/40">
-                  <p className="text-xl font-bold tracking-tight text-foreground">{item.variants}</p>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted">SKUs</p>
+                <div className="px-1 border-x border-border/10">
+                  <p className="text-base font-black tracking-tighter text-foreground sm:text-lg">{item.variants}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted/60 mt-0.5">SKUs</p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xl font-bold tracking-tight text-foreground">{item.stock}</p>
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted">Stock</p>
+                <div className="px-1">
+                  <p className="text-base font-black tracking-tighter text-foreground sm:text-lg">{item.stock}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted/60 mt-0.5">Stock</p>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="rounded-[22px] border border-dashed border-border/70 bg-[color:var(--surface-muted)] px-4 py-6 text-sm text-foreground/62">
+          <div className="rounded-[22px] border border-dashed border-border/70 bg-[color:var(--surface-muted)] px-4 py-6 text-sm text-foreground/62 col-span-2">
             No catalog groups available yet.
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonLoader() {
+  return (
+    <div className="grid gap-6">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="premium-card h-44 animate-pulse p-7">
+            <div className="mb-4 h-4 w-1/3 rounded bg-muted/10"></div>
+            <div className="mb-6 h-10 w-1/2 rounded bg-muted/20"></div>
+            <div className="h-4 w-full rounded bg-muted/10"></div>
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="premium-card h-80 animate-pulse p-8"></div>
+        <div className="premium-card h-80 animate-pulse p-8"></div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="premium-card h-96 animate-pulse p-8"></div>
+        <div className="premium-card h-96 animate-pulse p-8"></div>
       </div>
     </div>
   );

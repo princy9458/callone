@@ -7,18 +7,14 @@ import {
   InsightMetricCard,
   LeaderboardCard,
   TrendCard,
+  SkeletonLoader,
 } from "@/components/admin/analytics/InsightBlocks";
 import {
-  Shirt,
-  Briefcase,
-  Layers,
-  Package,
   TrendingUp,
   CreditCard,
   ShoppingBag,
   Warehouse,
   ClipboardCheck,
-  Loader2,
 } from "lucide-react";
 
 const money = new Intl.NumberFormat("en-IN", {
@@ -37,13 +33,13 @@ export default function AdminDashboardPage() {
       try {
         const response = await fetch("/api/dashboard");
         if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
+          throw new Error("Failed to fetch dashboard intelligence");
         }
         const result = await response.json();
         setData(result);
       } catch (err: any) {
         console.error("DASHBOARD_FETCH_ERROR:", err);
-        setError(err.message || "An error occurred while loading the dashboard.");
+        setError(err.message || "An error occurred while connecting to analytics service.");
       } finally {
         setLoading(false);
       }
@@ -54,24 +50,30 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium text-muted">Loading dashboard intelligence...</p>
+      <div className="space-y-8 animate-in fade-in duration-700">
+         <div className="flex flex-col gap-2 px-1">
+            <div className="h-4 w-32 animate-pulse rounded bg-muted/10"></div>
+            <div className="h-10 w-64 animate-pulse rounded bg-muted/20"></div>
+         </div>
+         <SkeletonLoader />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-4">
-        <div className="rounded-[24px] border border-red-100 bg-red-50 p-8 text-center">
-          <h2 className="text-lg font-bold text-red-900">Dashboard Error</h2>
-          <p className="mt-2 text-sm text-red-700">{error}</p>
+      <div className="flex h-[70vh] w-full flex-col items-center justify-center p-6 text-center animate-in zoom-in-95">
+        <div className="max-w-md rounded-[32px] border border-red-500/10 bg-red-500/5 p-10 shadow-2xl backdrop-blur-md">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-red-500/10 text-red-600">
+             <span className="text-4xl">⚠️</span>
+          </div>
+          <h2 className="text-2xl font-black tracking-tight text-foreground">Connection Outage</h2>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-muted">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="mt-5 rounded-full bg-red-600 px-6 py-2 text-xs font-bold text-white transition hover:bg-red-700"
+            className="mt-8 w-full rounded-2xl bg-foreground px-8 py-4 text-xs font-black uppercase tracking-widest text-background transition-all hover:scale-105 active:scale-95 shadow-xl shadow-black/10"
           >
-            Retry Connection
+            Reconnect to Database
           </button>
         </div>
       </div>
@@ -80,10 +82,12 @@ export default function AdminDashboardPage() {
 
   if (!data || (!data.brandCoverage?.length && !data.topProducts?.length)) {
     return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-4">
-        <Package className="h-12 w-12 text-muted/30" />
-        <h2 className="text-lg font-bold text-foreground">No Data Found</h2>
-        <p className="text-sm text-muted">The analytics engine has no current data to process.</p>
+      <div className="flex h-[70vh] w-full flex-col items-center justify-center p-6 text-center animate-in fade-in duration-1000">
+        <div className="flex h-24 w-24 items-center justify-center rounded-[32px] bg-foreground/[0.03] text-4xl grayscale opacity-40">
+           📦
+        </div>
+        <h2 className="mt-8 text-2xl font-black tracking-tight text-foreground">Intelligence Dormant</h2>
+        <p className="mt-3 max-w-sm text-sm font-medium leading-relaxed text-muted">The analytics processing engine is waiting for transaction data to arrive.</p>
       </div>
     );
   }
@@ -113,131 +117,131 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <section className="premium-card overflow-hidden rounded-[28px]">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/5 px-4 py-5">
-          <div className="space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted">
-              Daily overview
+    <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <section className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-6 px-1 pt-2">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted">
+              Live intelligence
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Performance at a glance
+            <h1 className="text-4xl font-black tracking-tight text-foreground">
+              Performance Matrix
             </h1>
           </div>
         </div>
 
-        <div className="grid gap-6 px-4 py-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           <InsightMetricCard
             label="Travis Mathew"
             value={String(brandCatalog.find((b: any) => b.label?.toLowerCase().includes("travis"))?.products || 0)}
-            detail="Total products currently active in the Travis Mathew catalog."
-            accent="#EEF4FF"
+            detail="Active products in TM catalog."
+            accent="var(--accent-blue)"
             image={"https://callawaytech.s3.ap-south-1.amazonaws.com/omsimages/uploads/tm_thum_23fdeb8c29.png"}
           />
           <InsightMetricCard
             label="Ogio"
             value={String(brandCatalog.find((b: any) => b.label?.toLowerCase().includes("ogio"))?.products || 0)}
-            detail="Products currently available in the OGIO product line."
-            accent="#FFF7E6"
+            detail="Available premium backpacks."
+            accent="var(--accent-yellow)"
             image="https://callawaytech.s3.ap-south-1.amazonaws.com/omsimages/uploads/ogio_favicon_ac591c347e_8de0fee6f4.png"
           />
           <InsightMetricCard
-            label="Callaway Softgoods"
+            label="Callaway Soft"
             value={String(brandCatalog.find((b: any) => b.label?.toLowerCase().includes("softgoods"))?.products || 0)}
-            detail="Active softgoods items ready for sales and distribution."
-            accent="#ECFDF5"
+            detail="Active softgoods items."
+            accent="var(--accent-green)"
             image="https://callawaytech.s3.ap-south-1.amazonaws.com/omsimages/uploads/icon_callway_f25555115b.png"
           />
           <InsightMetricCard
-            label="Callaway Hardgoods"
+            label="Callaway Hard"
             value={String(brandCatalog.find((b: any) => b.label?.toLowerCase().includes("hardgoods"))?.products || 0)}
-            detail="Hardware and equipment products in the current inventory."
-            accent="#FFF1F2"
+            detail="High performance equipment."
+            accent="var(--accent-pink)"
             image="https://callawaytech.s3.ap-south-1.amazonaws.com/omsimages/uploads/icon_callway_f25555115b.png"
           />
         </div>
 
-        <div className="grid gap-6 px-4 py-5 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
           <InsightMetricCard
             label="Order value"
             value={money.format(headlineMetrics.totalRevenue)}
-            detail={`${headlineMetrics.totalOrders} live orders tracked across the workspace.`}
-            accent="#EEF4FF"
+            detail={`${headlineMetrics.totalOrders} live orders.`}
+            accent="var(--accent-blue)"
             icon={CreditCard}
           />
           <InsightMetricCard
-            label="Active products"
+            label="Active items"
             value={String(headlineMetrics.activeProducts)}
-            detail="Total products currently available to sales and admin teams."
-            accent="#ECFDF5"
+            detail="Total sellable catalog."
+            accent="var(--accent-green)"
             icon={ShoppingBag}
           />
           <InsightMetricCard
-            label="Available units"
+            label="Total stock"
             value={String(headlineMetrics.availableUnits)}
-            detail="Stock ready to allocate across active warehouse locations."
-            accent="#FFF7E6"
+            detail="Units in fulfillment hubs."
+            accent="var(--accent-yellow)"
             icon={Warehouse}
           />
           <InsightMetricCard
-            label="Pending approvals"
+            label="Approvals"
             value={String(headlineMetrics.pendingApprovals)}
-            detail="Orders waiting on availability review or approval."
-            accent="#FFF1F2"
+            detail="Orders awaiting review."
+            accent="var(--accent-pink)"
             icon={ClipboardCheck}
           />
           <InsightMetricCard
-            label="Average order"
+            label="Avg ticket"
             value={money.format(headlineMetrics.averageOrderValue)}
-            detail="Average value per active order in the current system."
-            accent="#F3F4F6"
+            detail="Value per active order."
+            accent="var(--accent-grey)"
             icon={TrendingUp}
           />
         </div>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="grid gap-8 xl:grid-cols-[1.25fr_0.75fr]">
         <TrendCard
-          title="Weekly order movement"
-          description="Order value and activity across the last eight weeks."
+          title="Weekly Revenue Flow"
+          description="Gross order value movement across the last trailing 8 weeks."
           points={data.weeklyOrderValue || []}
           formatter={(value) => money.format(value)}
         />
         <BreakdownCard
-          title="Workflow focus"
-          description="Where orders are currently sitting in the process."
+          title="Workflow Pipeline"
+          description="Distribution of orders by their current processing stage."
           items={data.workflowBreakdown || []}
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
         <BrandCatalogCard
-          title="Brand coverage"
-          description="Current catalog footprint by brand, including variants and available stock."
+          title="Brand Intelligence"
+          description="High-level catalog footprint and real-time inventory depth per brand."
           items={brandCatalog}
         />
         <LeaderboardCard
-          title="Top ordered products"
-          description="Most requested items by unit count, with value underneath."
+          title="Product Velocity"
+          description="Performance ranking of items based on unit demand and contribution."
           items={topProducts}
           valuePrefix=""
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-8 xl:grid-cols-3">
         <BreakdownCard
-          title="Warehouse distribution"
-          description="Stock availability across active fulfillment hubs."
+          title="Hub Distribution"
+          description="Regional inventory availability across active fulfillment centers."
           items={data.warehouseBreakdown || []}
         />
         <BreakdownCard
-          title="Team distribution"
-          description="Current active users by responsibility."
+          title="Role Utilization"
+          description="Personnel bandwidth and active account distribution."
           items={data.roleDistribution || []}
         />
         <LeaderboardCard
-          title="Leading people"
-          description="Team members attached to the highest order value."
+          title="Peak Performers"
+          description="Individual contributors driving the highest revenue results."
           items={data.topContributors || []}
           valuePrefix=""
         />
