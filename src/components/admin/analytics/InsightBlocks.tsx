@@ -45,17 +45,24 @@ export function InsightMetricCard({
   image?: string;
   accent?: string;
 }) {
-  // Check if accent is 'dark' to flip text color
-  const isDarkAccent = accent && (accent.startsWith('#00') || accent.startsWith('#11') || accent.startsWith('#4b') || accent.startsWith('#0B'));
-  const textClass = isDarkAccent ? "text-white" : "text-foreground";
-  const mutedClass = isDarkAccent ? "text-white/60" : "text-muted";
+  const isDarkAccent = accent && (
+    accent.toLowerCase().startsWith('#00') || 
+    accent.toLowerCase().startsWith('#11') || 
+    accent.toLowerCase().startsWith('#0b') || 
+    accent.toLowerCase().startsWith('#1a') || 
+    accent.toLowerCase().startsWith('#4b')
+  );
+  
+  const textClass = accent ? (isDarkAccent ? "text-white" : "text-black") : "text-foreground";
+  const mutedClass = accent ? (isDarkAccent ? "text-white/60" : "text-black/60") : "text-muted";
 
   return (
     <div 
       className="group premium-card p-6"
       style={{
-        backgroundColor: accent || "var(--surface)",
-        borderColor: accent ? "rgba(0,0,0,0.1)" : "var(--premium-card-border)"
+        backgroundColor: accent || "var(--premium-card-bg)",
+        backgroundImage: accent ? 'none' : undefined,
+        borderColor: accent ? "rgba(0,0,0,0.08)" : "var(--premium-card-border)"
       }}
     >
       <div className="flex items-start justify-between">
@@ -69,10 +76,14 @@ export function InsightMetricCard({
         </div>
         {(Icon || image) && (
           <div 
-            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/12 bg-black/5 text-foreground transition duration-400 group-hover:scale-110"
+            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/5 transition duration-400 group-hover:scale-110"
+            style={{ 
+              backgroundColor: accent ? (isDarkAccent ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)") : "var(--control-bg)",
+              color: accent ? (isDarkAccent ? "#FFFFFF" : "#000000") : "var(--foreground)"
+            }}
           >
             {image ? (
-              <img src={image} alt={label} className="h-full w-full object-contain p-2 grayscale contrast-125 brightness-90" />
+              <img src={image} alt={label} className="h-full w-full object-contain p-2" />
             ) : Icon ? (
               <Icon size={20} strokeWidth={2.5} />
             ) : null}

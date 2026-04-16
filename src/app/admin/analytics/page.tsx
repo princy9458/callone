@@ -70,7 +70,7 @@ export default async function AnalyticsPage() {
             </p>
           </div>
 
-          <div className="rounded-[24px] border border-border bg-surface-muted/50 p-5">
+          <div className="rounded-[24px] border border-border bg-surface-muted p-5 shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
               Quick insight
             </p>

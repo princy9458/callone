@@ -114,7 +114,7 @@ export function AdminShell({children, user}: AdminShellProps) {
     pathname.startsWith("/admin/cart");
 
   const shellWidthClass = isWideWorkspace ? "max-w-[1600px]" : "max-w-[1280px]";
-  const contentLiftClass = isWideWorkspace ? "-mt-10" : "-mt-5";
+  const contentLiftClass = isWideWorkspace ? "-mt-24" : "-mt-16";
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -691,7 +691,7 @@ export function AdminShell({children, user}: AdminShellProps) {
         </AnimatePresence>
 
         <div className="relative">
-          <div className="relative h-[200px] overflow-hidden bg-surface text-white">
+          <div className="relative h-[280px] overflow-hidden bg-background text-white">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeHeroSlide.id}
@@ -701,15 +701,15 @@ export function AdminShell({children, user}: AdminShellProps) {
                 transition={{duration: 0.8, ease: "easeOut"}}
                 className="absolute inset-0"
                 style={{
-                  backgroundImage: `linear-gradient(to bottom, transparent, var(--background) 95%), url(${activeHeroSlide.image})`,
+                  backgroundImage: `url(${activeHeroSlide.image})`,
                   backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  filter: "grayscale(0.1) contrast(1.15) brightness(0.92) opacity(0.65)",
+                  backgroundPosition: "center 25%",
+                  filter: "contrast(1.05) brightness(1.02)",
                 }}
               />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/5 to-background/40" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(0,0,0,0.02),transparent_42%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.05),transparent_42%)]" />
+            {/* Minimalist Bottom Fade Only */}
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
             <div
               className={clsx(
