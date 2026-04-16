@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
-import { Tag } from 'lucide-react';
-import { removeFromCart, updateCartItemQty, updateCartItemStock, setDiscount, setSelectedRetailer, setSelectedManager, setSelectedSalesRep, clearCart } from '@/store/slices/cart/cartSlice';
+import { updateCartItemQty, setDiscount, setSelectedRetailer, setSelectedManager, setSelectedSalesRep, clearCart } from '@/store/slices/cart/cartSlice';
 import { fetchUsersByRole } from '@/store/slices/users/userThunks';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { NoteModel, OrderModel } from '@/store/slices/order/OrderType';
@@ -25,6 +24,7 @@ import { updateStockTravisMathew } from '@/store/slices/travisMathewSlice/travis
 import { updateStockSoftgoods } from '@/store/slices/softgoods/softgoodsSlice';
 import { AddNoteModal } from '@/components/cart/AddNoteModal';
 import { motion } from 'framer-motion';
+import { Tag } from 'lucide-react';
 
 const STEPS = [
   { id: 1, label: 'Submit Order' },

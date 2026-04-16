@@ -34,4 +34,4 @@ export function StatCard({
         </div>
       ) : null}
     </div>
-
+  )}

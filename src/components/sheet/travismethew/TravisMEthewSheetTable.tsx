@@ -391,8 +391,8 @@ const hasActiveFilters = useMemo(() => {
             const filter = columnFilters[key];
             return (
               <div key={key} className="flex items-center gap-1.5">
-                <button className="text-xs font-semibold text-foreground">{key}</button>
-                {/* <span className="text-xs text-foreground/60">{filter.selection}</span> */}
+                <button className="text-xs font-semibold text-foreground">{key}:</button>
+                <span className="text-xs text-foreground/60">{filter.selection}</span>
               </div>
             );
           })}
