@@ -25,6 +25,7 @@ export function InsightMetricCard({
   icon: Icon,
   image,
   accent,
+  isLoading,
 }: {
   label: string;
   value: string;
@@ -32,6 +33,7 @@ export function InsightMetricCard({
   icon?: React.ElementType;
   image?: string;
   accent?: string;
+  isLoading?: boolean;
 }) {
   // Use dark text for all colored (pastel) cards as per user reference
   const textClass = accent ? "text-[#0B0B0B]" : "text-foreground";
@@ -50,18 +52,24 @@ export function InsightMetricCard({
           <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}>
             {label}
           </p>
-          <p className={`text-3xl font-black tracking-tight ${textClass} sm:text-4xl`}>
-            {value}
-          </p>
+          {isLoading ? (
+            <div className="h-9 w-24 animate-pulse rounded-lg bg-black/10 mt-1" />
+          ) : (
+            <p className={`text-3xl font-black tracking-tight ${textClass} sm:text-4xl`}>
+              {value}
+            </p>
+          )}
         </div>
-        {(Icon || image) && (
+        {(Icon || image || isLoading) && (
           <div 
             className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/5 transition duration-500 group-hover:scale-110 bg-white/40"
             style={{ 
               color: accent ? "rgba(0,0,0,0.8)" : "var(--foreground)"
             }}
           >
-            {image ? (
+            {isLoading ? (
+               <div className="h-5 w-5 animate-pulse rounded bg-black/10" />
+            ) : image ? (
               <img src={image} alt={label} className="h-full w-full object-contain p-2" />
             ) : Icon ? (
               <Icon size={20} strokeWidth={2.5} />
@@ -69,7 +77,11 @@ export function InsightMetricCard({
           </div>
         )}
       </div>
-      <p className={`mt-4 text-xs font-medium leading-relaxed opacity-80 relative z-10 ${mutedClass}`}>{detail}</p>
+      {isLoading ? (
+        <div className="mt-4 h-3 w-32 animate-pulse rounded bg-black/5 relative z-10" />
+      ) : (
+        <p className={`mt-4 text-xs font-medium leading-relaxed opacity-80 relative z-10 ${mutedClass}`}>{detail}</p>
+      )}
     </div>
   );
 }
@@ -78,14 +90,16 @@ export function TrendCard({
   title,
   description,
   points,
+  isLoading,
   formatter = compactNumber,
 }: {
   title: string;
   description: string;
   points: TrendPoint[];
+  isLoading?: boolean;
   formatter?: (value: number) => string;
 }) {
-  if (!points || points.length === 0) {
+  if (!isLoading && (!points || points.length === 0)) {
     return (
       <div className="premium-card rounded-[28px] p-6">
         <p className="text-base font-semibold tracking-tight text-foreground">{title}</p>
@@ -128,26 +142,38 @@ export function TrendCard({
       </div>
 
       <div className="mt-5 overflow-hidden rounded-[24px] border border-border/12 bg-surface-muted/30 p-5">
-        <svg viewBox="0 0 100 76" className="h-52 w-full">
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#2DD4BF" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill={`url(#${gradientId})`} />
-          <path
-            d={linePath}
-            fill="none"
-            stroke="#2DD4BF"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        </svg>
+        {isLoading ? (
+          <div className="h-52 w-full animate-pulse bg-muted/10 rounded-xl" />
+        ) : points.length > 0 ? (
+          <svg viewBox="0 0 100 76" className="h-52 w-full">
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#2DD4BF" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={areaPath} fill={`url(#${gradientId})`} />
+            <path
+              d={linePath}
+              fill="none"
+              stroke="#2DD4BF"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+           <div className="flex h-52 items-center justify-center">
+             <p className="text-sm text-muted">No data available</p>
+           </div>
+        )}
 
         <div className="mt-3 grid gap-2 md:grid-cols-4 xl:grid-cols-8">
-          {points.map((point) => (
+          {isLoading ? (
+            [...Array(8)].map((_, i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-muted/20" />
+            ))
+          ) : points.map((point) => (
             <div key={point.label} className="rounded-xl border border-border bg-surface-muted/50 px-3 py-2 text-center transition-all hover:bg-surface-elevated">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                 {point.label}
@@ -167,10 +193,12 @@ export function BreakdownCard({
   title,
   description,
   items,
+  isLoading,
 }: {
   title: string;
   description: string;
   items: BreakdownItem[];
+  isLoading?: boolean;
 }) {
   const maxValue = Math.max(...items.map((item) => item.value), 1);
 
@@ -180,7 +208,11 @@ export function BreakdownCard({
       <p className="mt-1 text-sm text-foreground/62">{description}</p>
 
       <div className="mt-5 space-y-3">
-        {items.length ? (
+        {isLoading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/20" />
+          ))
+        ) : items.length ? (
           items.map((item) => (
             <div key={item.label} className="rounded-xl border border-border bg-surface px-4 py-3 transition duration-300 hover:bg-surface-muted">
               <div className="flex items-center justify-between gap-3">
@@ -213,12 +245,14 @@ export function LeaderboardCard({
   title,
   description,
   items,
+  isLoading,
   valuePrefix = "",
   showCurrency = false,
 }: {
   title: string;
   description: string;
   items: LeaderboardItem[];
+  isLoading?: boolean;
   valuePrefix?: string;
   showCurrency?: boolean;
 }) {
@@ -228,7 +262,11 @@ export function LeaderboardCard({
       <p className="mt-1 text-sm text-foreground/62">{description}</p>
 
       <div className="mt-5 space-y-3">
-        {items.length ? (
+        {isLoading ? (
+          [...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/20" />
+          ))
+        ) : items.length ? (
           items.map((item, index) => (
             <div key={`${item.label}-${index}`} className="rounded-xl border border-border bg-surface px-4 py-4 transition duration-300 hover:bg-surface-muted">
               <div className="flex items-start justify-between gap-4">
@@ -261,10 +299,12 @@ export function BrandCatalogCard({
   title,
   description,
   items,
+  isLoading,
 }: {
   title: string;
   description: string;
   items: BrandCatalogInsight[];
+  isLoading?: boolean;
 }) {
   return (
     <div className="premium-card rounded-[28px] p-6">
@@ -272,7 +312,11 @@ export function BrandCatalogCard({
       <p className="mt-1 text-sm text-foreground/62">{description}</p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-2">
-        {items.length ? (
+        {isLoading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-xl bg-muted/20" />
+          ))
+        ) : items.length ? (
           items.map((item) => (
             <div key={item.label} className="rounded-xl border border-border bg-surface p-4 transition duration-300 hover:bg-surface-muted">
               <p className="text-xs font-bold uppercase tracking-wider text-muted pb-3 border-b border-border/10 mb-4">{item.label}</p>
